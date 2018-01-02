@@ -24,10 +24,8 @@ PRODUCT_PACKAGES += \
 
 # Symbols
 PRODUCT_PACKAGES += \
-    libmtk_symbols
-
-# Memtrack
-PRODUCT_PACKAGES += memtrack.mt6592
+    libmtk_symbols \
+    libxlog
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -57,6 +55,7 @@ PRODUCT_COPY_FILES += \
 # Rootdir
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/enableswap.sh:root/enableswap.sh \
+    $(LOCAL_PATH)/rootdir/factory_init.rc:root/factory_init.rc \
     $(LOCAL_PATH)/rootdir/fstab.mt6592:root/fstab.mt6592 \
     $(LOCAL_PATH)/rootdir/init.modem.rc:root/init.modem.rc \
     $(LOCAL_PATH)/rootdir/init.mt6592.rc:root/init.mt6592.rc \
