@@ -22,7 +22,7 @@ extern "C" {
     void _ZN7android13GraphicBufferC1Ejjij(void *instance, uint32_t inWidth, uint32_t inHeight, android::PixelFormat inFormat, uint32_t inUsage) {
 
         static void (*func)(void *instance, uint32_t, uint32_t, android::PixelFormat, uint32_t, std::string) = NULL;
-        static void (*func2)(void *instance) = NULL;
+	static void (*func2)(void *instance) = NULL;
         std::string my_requestorName("<Unknown>");
 
 	ALOGI("_ZN7android13GraphicBufferC1Ejjij: begin ...\n");
