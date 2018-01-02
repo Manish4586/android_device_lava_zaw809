@@ -164,7 +164,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
     persist.sys.media.use-awesome=false
 
 PRODUCT_NAME := full_irisX8
-PRODUCT_DEVICE := irisX8
+PRODUCT_DEVICE := IrisX8
 
 # Boot animation
 TARGET_SCREEN_HEIGHT := 1280
