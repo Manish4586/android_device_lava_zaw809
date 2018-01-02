@@ -11,7 +11,7 @@ $(call inherit-product, device/Lava/IrisX8/device_IrisX8.mk)
 PRODUCT_LOCALES := en_US 
 
 # Device identifier. This must come after all inclusions
-PRODUCT_DEVICE := irisX8
+PRODUCT_DEVICE := IrisX8
 PRODUCT_NAME := lineage_IrisX8
 PRODUCT_BRAND := iris
 PRODUCT_MODEL := Iris X8 N
