@@ -25,7 +25,8 @@ WITH_DEXPREOPT := false
 DONT_DEXPREOPT_PREBUILTS := true
 
 # Link against libxlog
-TARGET_LDPRELOAD := libmtk_symbols.so
+TARGET_LDPRELOAD := 
+libxlog.so:libmtk_symbols.so
 
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := mt6592
@@ -34,7 +35,7 @@ TARGET_USERIMAGES_USE_EXT4:=true
 TARGET_USERIMAGES_SPARSE_EXT_DISABLED := false
 
 # Assert
-TARGET_OTA_ASSERT_DEVICE := Iris X8
+TARGET_OTA_ASSERT_DEVICE := irisX8
 
 # MTK HARDWARE
 OLD_KERNEL := true
@@ -95,6 +96,8 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/mt_usb/musb-hdrc.0/gadg
 TW_MAX_BRIGHTNESS := 255
 RECOVERY_SDCARD_ON_DATA := true
 TW_DEFAULT_EXTERNAL_STORAGE := true
+TW_CRYPTO_REAL_BLKDEV := "/dev/block/mmcblk0p7"
+TW_CRYPTO_MNT_POINT := "/data"
 TW_CRYPTO_FS_TYPE := "ext4"
 TW_INCLUDE_FB2PNG := true
 
