@@ -28,3 +28,9 @@ git clone https://github.com/Manish4586/Iris-X8-L-Device_3.10.72.git device/Lava
 git clone https://github.com/Manish4586/Iris-X8-L-Vendor_3.10.72.git vendor/Lava/IrisX8
 
 source build/envsetup.sh
+
+cd device/Lava/IrisX8/patches
+
+source apply.sh
+
+breakfast IrisX8
