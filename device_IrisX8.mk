@@ -116,10 +116,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     Snap
     
-# Charger
-PRODUCT_PACKAGES += \
-    charger_res_images
-
 # FM Radio
 PRODUCT_PACKAGES += \
     FMRadio \
