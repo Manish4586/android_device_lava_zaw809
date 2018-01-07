@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#ifdef MTK_MT6582
+#ifdef MTK_MT6592
 extern "C" void _ZN7android11AudioSystem24getVoiceUnlockDLInstanceEv()
 { return; }
 extern "C" int _ZN7android11AudioSystem23GetVoiceUnlockDLLatencyEv()
