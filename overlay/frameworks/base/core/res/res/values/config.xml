@@ -84,7 +84,7 @@
     <bool name="config_wifi_background_scan_support">true</bool>
 
     <bool name="config_automatic_brightness_available">true</bool>
-	
+    
     <!-- If this is true, the screen will come on when you plug/unplug usb/power/whatever. -->
     <bool name="config_unplugTurnsOnScreen">true</bool>
 
@@ -170,9 +170,6 @@
     
     <integer name="config_deviceHardwareKeys">7</integer>
 
-    <!-- IpReachability monitor enable/Disable -->
-    <bool translatable="false" name="config_wifi_ipreachability_monitor">false</bool>
-	
     <!-- Ambient display -->
     <integer name="config_screenBrightnessDoze">30</integer>
     <string name="config_dozeComponent">com.android.systemui/com.android.systemui.doze.DozeService</string>
