@@ -83,9 +83,47 @@
 
     <bool name="config_wifi_background_scan_support">true</bool>
 
+    <bool name="config_automatic_brightness_available">true</bool>
+	
     <!-- If this is true, the screen will come on when you plug/unplug usb/power/whatever. -->
     <bool name="config_unplugTurnsOnScreen">true</bool>
 
+    <integer-array name="config_autoBrightnessLevels">
+        <item>16</item>
+	<item>32</item>
+	<item>50</item>
+	<item>100</item>
+	<item>140</item>
+	<item>180</item>
+	<item>240</item>
+	<item>300</item>
+	<item>600</item>
+	<item>1000</item>
+	<item>2000</item>
+	<item>3000</item>
+	<item>4000</item>
+	<item>8000</item>
+	<item>10000</item>
+    </integer-array>
+    <integer-array name="config_autoBrightnessLcdBacklightValues">
+        <item>30</item>
+	<item>40</item>
+	<item>50</item>
+	<item>60</item>
+	<item>70</item>
+	<item>80</item>
+	<item>102</item>
+	<item>102</item>
+	<item>102</item>
+	<item>102</item>
+	<item>102</item>
+	<item>180</item>
+	<item>200</item>
+	<item>210</item>
+	<item>230</item>
+	<item>255</item>
+    </integer-array>
+	
     <!-- Whether WiFi display is supported by this device.
          There are many prerequisites for this feature to work correctly.
          Here are a few of them:
@@ -132,6 +170,9 @@
     
     <integer name="config_deviceHardwareKeys">7</integer>
 
+    <!-- IpReachability monitor enable/Disable -->
+    <bool translatable="false" name="config_wifi_ipreachability_monitor">false</bool>
+	
     <!-- Ambient display -->
     <integer name="config_screenBrightnessDoze">30</integer>
     <string name="config_dozeComponent">com.android.systemui/com.android.systemui.doze.DozeService</string>
