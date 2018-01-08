@@ -63,6 +63,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.mt6592.usb.rc:root/init.mt6592.usb.rc \
     $(LOCAL_PATH)/rootdir/init.recovery.mt6592.rc:/init.recovery.mt6592.rc \
     $(LOCAL_PATH)/rootdir/root/init.project.rc:root/init.project.rc \
+      $(LOCAL_PATH)/rootdir/root/init.ssd_nomuser.rc:root/init.ssd_nomuser.rc \
     $(LOCAL_PATH)/rootdir/root/meta_init.modem.rc:root/meta_init.modem.rc \
     $(LOCAL_PATH)/rootdir/root/meta_init.rc:root/meta_init.rc \
     $(LOCAL_PATH)/rootdir/root/meta_init.project.rc:root/meta_init.project.rc
