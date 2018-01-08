@@ -61,7 +61,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.mt6592.rc:root/init.mt6592.rc \
     $(LOCAL_PATH)/rootdir/init.mt6592.usb.rc:root/init.mt6592.usb.rc \
     $(LOCAL_PATH)/rootdir/init.recovery.mt6592.rc:/init.recovery.mt6592.rc \
-    $(LOCAL_PATH)/rootdir/root/init.ssd_nomuser.rc:root/init.ssd_nomuser.rc \
     $(LOCAL_PATH)/rootdir/ueventd.mt6592.rc:root/ueventd.mt6592.rc \
     $(LOCAL_PATH)/rootdir/ueventd.rc:root/ueventd.rc \
     $(LOCAL_PATH)/rootdir/twrp.fstab:recovery/root/etc/twrp.fstab \
