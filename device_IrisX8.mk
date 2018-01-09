@@ -94,6 +94,7 @@ PRODUCT_COPY_FILES += \
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml \
     $(LOCAL_PATH)/configs/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
     $(LOCAL_PATH)/configs/android.hardware.microphone.xml:system/etc/permissions/android.hardware.microphone.xml
+    $(LOCAL_PATH)/configs/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml
 
 # Keylayout
 PRODUCT_COPY_FILES += \
@@ -152,9 +153,11 @@ PRODUCT_PROPERTY_OVERRIDES := \
 # USB
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.sys.usb.config=mtp,adb
 
-# Set default player to AwesomePlayer
+# Set default language
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.media.use-awesome=false
+    persist.sys.language=en \	
+    persist.sys.country=IN \
+    
 
 PRODUCT_NAME := full_irisX8
 PRODUCT_DEVICE := IrisX8
