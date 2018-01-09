@@ -12,7 +12,7 @@ on early-init
 # create mountpoints
     mkdir /mnt 0775 root system
     mount debugfs /sys/kernel/debug /sys/kernel/debug
-    setprop ro.mtk.hardware mt6582
+    setprop ro.mtk.hardware mt6592
     mkdir /storage 0055 system sdcard_r
     mkdir /storage/sdcard0 0000 system system
     # for backwards compatibility
@@ -93,7 +93,7 @@ on late-init
 # mount different fs start
 on fs
     write /proc/bootprof "INIT:eMMC:Mount_All_START"
-    mount_all /fstab.mt6582
+    mount_all /fstab.mt6592
     write /proc/bootprof "INIT:eMMC:Mount_All_END"
 
     #for SD card with partition(s), always mount the 1st
