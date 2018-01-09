@@ -31,7 +31,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     audio.primary.mt6592 \
     audio_policy.default \
-    audio.a2dp.default \
+    audio_policy.stub \
     audio.usb.default \
     audio.r_submix.default \
     libaudio-resampler \
@@ -94,6 +94,7 @@ PRODUCT_COPY_FILES += \
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml \
     $(LOCAL_PATH)/configs/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
     $(LOCAL_PATH)/configs/android.hardware.microphone.xml:system/etc/permissions/android.hardware.microphone.xml
+    $(LOCAL_PATH)/configs/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml
     
 # Keylayout
 PRODUCT_COPY_FILES += \
