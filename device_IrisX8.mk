@@ -126,9 +126,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/agps_profiles_conf2.xml:system/etc/agps_profiles_conf2.xml
 
-PRODUCT_PACKAGES += \
-    gps.mt6592
-
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/media_codecs.xml:system/etc/media_codecs.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
@@ -137,7 +134,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/media_profiles.xml:system/etc/media_profiles.xml	
 
 PRODUCT_PROPERTY_OVERRIDES := \
-	ro.mediatek.version.release=Lava_irisX8L_S009_20151028 \
+	ro.mediatek.version.release=Manish_4586@Lava \
 	ro.mediatek.platform=MT6592 \
 	ro.mediatek.chip_ver=S01 \
 	ro.mediatek.version.branch=KK1.MP1 \
