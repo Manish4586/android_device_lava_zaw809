@@ -117,6 +117,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     Snap
     
+# Substratum
+PRODUCT_PACKAGES += \
+    ThemeInterfacer
+    
 # FM Radio
 PRODUCT_PACKAGES += \
     FMRadio \
