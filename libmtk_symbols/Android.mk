@@ -24,7 +24,7 @@ LOCAL_SRC_FILES := \
     libshim_bionic.cpp \
     icu55.c
 
-LOCAL_SHARED_LIBRARIES := libbinder liblog libicuuc libui libcrypto libc
+LOCAL_SHARED_LIBRARIES := libbinder
 LOCAL_MODULE := libmtk_symbols
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
