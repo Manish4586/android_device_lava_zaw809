@@ -21,6 +21,7 @@ LOCAL_SRC_FILES := \
     mtk_ui.cpp \
     mtk_ril.cpp \
     mtk_cam.cpp \
+    gps.cpp \
     libshim_bionic.cpp \
     icu55.c
 
