@@ -198,7 +198,7 @@ on post-fs-data
 
     mkdir /data/misc/gps 0770 gps gps
 # -----------------------
-# Add by MTK
+# Add by MTK and Fixes By Manish_4586, Arnel Laspinas, LADT
 
     # dhcp server
     mkdir /data/misc/dhcp 0770 dhcp wifi
