@@ -662,11 +662,6 @@ on boot
 
     class_start default
 
-on property:ro.build.type=userdebug
-    write /proc/sys/fs/suid_dumpable 2
-    write /proc/sys/kernel/core_pattern "|/system/bin/aee_core_forwarder /data/core/ %p %s UID=%u GID=%g"
-    write /proc/self/coredump_filter 39
-
 on property:vold.decrypt=trigger_reset_main
     start stop_modem
 
