@@ -93,6 +93,7 @@ PRODUCT_COPY_FILES += \
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml \
     $(LOCAL_PATH)/configs/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
     $(LOCAL_PATH)/configs/android.hardware.microphone.xml:system/etc/permissions/android.hardware.microphone.xml
+    $(LOCAL_PATH)/configs/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml
     
 # Keylayout
 PRODUCT_COPY_FILES += \
@@ -129,7 +130,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/agps_profiles_conf2.xml:system/etc/agps_profiles_conf2.xml
 
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml
     $(LOCAL_PATH)/configs/media_codecs.xml:system/etc/media_codecs.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
