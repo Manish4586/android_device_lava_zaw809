@@ -198,7 +198,7 @@ on post-fs-data
 
     mkdir /data/misc/gps 0770 gps gps
 # -----------------------
-# Add by MTK and Fixes By Manish_4586, Arnel Laspinas, LADT
+# Add by MTK
 
     # dhcp server
     mkdir /data/misc/dhcp 0770 dhcp wifi
@@ -470,11 +470,9 @@ on post-fs-data
     chmod 0660 /dev/FM50AF
     chmod 0660 /dev/CAM_CAL_DRV
     chmod 0660 /dev/EEPROM_M24C08F
-    chmod 0660 /dev/OV8858AF_GZ
-    chmod 0660 /dev/OV8858AF_QT
-    chmod 0660 /dev/OV8858AF_SY
     chmod 0660 /dev/DW9718AF
-    
+    chmod 0660 /dev/DW9714AF  
+
     chown system camera /dev/camera-sysram
     chown system camera /dev/camera-isp
     chown system camera /dev/camera-pipemgr
@@ -484,10 +482,8 @@ on post-fs-data
     chown system camera /dev/FM50AF
     chown system camera /dev/CAM_CAL_DRV
     chown system camera /dev/EEPROM_M24C08F
-    chown system camera /dev/OV8858AF_GZ
-    chown system camera /dev/OV8858AF_QT
-    chown system camera /dev/OV8858AF_SY
     chown system camera /dev/DW9718AF
+    chown system camera /dev/DW9714AF  
 
     #MATV
     chmod 0660 /dev/MATV
