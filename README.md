@@ -1,4 +1,4 @@
-# LineageOS 14.1
+# AOSP 7.1.2
 
 7.1.2 Iris X8 L
 
@@ -19,18 +19,14 @@ Display | 5" 1280 x 720 px
 
 # Command To Build :-
 
-repo init -u git://github.com/TestMT6572/android.git -b cm-14.1
+reporepo init -u git://github.com/Manish4586/aosp_Ext_Manifest.git -b 7.x
 
 repo sync
 
-git clone https://github.com/Manish4586/Iris-X8-L-Device_3.10.72.git device/Lava/IrisX8
+git clone https://github.com/Manish4586/Iris-X8-L-Device_3.10.72.git -b aosp device/Lava/IrisX8
 
 git clone https://github.com/Manish4586/Iris-X8-L-Vendor_3.10.72.git vendor/Lava/IrisX8
 
 source build/envsetup.sh
-
-cd device/Lava/IrisX8/patches
-
-source apply.sh
 
 breakfast IrisX8
