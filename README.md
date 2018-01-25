@@ -1,6 +1,5 @@
-# AOSP 7.1.2
-
-7.1.2 Iris X8 L
+![AOSP](https://www1-lw.xda-cdn.com/files/2012/10/AOSP.jpg)
+# 7.1.2 Iris X8 L
 
 Basic   | Spec Sheet
 -------:|:-------------------------
@@ -30,3 +29,5 @@ git clone https://github.com/Manish4586/Iris-X8-L-Vendor_3.10.72.git vendor/Lava
 source build/envsetup.sh
 
 breakfast IrisX8
+
+![Lava Iris X8](http://www.lavamobiles.com/lavastorecms/material/product/lava-smartphone-iris-x8-375x700-04022015.jpg)
