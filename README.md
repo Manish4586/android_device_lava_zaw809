@@ -1,5 +1,4 @@
-<img src="https://raw.githubusercontent.com/Manish4586/Iris-X8-L-Device_3.10.72/irisX8.png">
-# LineageOS 14.1
+![LineageOS](https://lineageos.org/images/logo-2.png)
 
 7.1.2 Iris X8 L
 
@@ -35,3 +34,4 @@ cd device/Lava/IrisX8/patches
 source apply.sh
 
 breakfast IrisX8
+![Lava Iris X8](http://www.lavamobiles.com/lavastorecms/material/product/lava-smartphone-iris-x8-375x700-04022015.jpg)
