@@ -1,6 +1,6 @@
 ![LineageOS](https://lineageos.org/images/logo-2.png)
 
-7.1.2 Iris X8 L
+# 7.1.2 Iris X8 L
 
 Basic   | Spec Sheet
 -------:|:-------------------------
