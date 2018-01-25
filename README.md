@@ -34,4 +34,5 @@ cd device/Lava/IrisX8/patches
 source apply.sh
 
 breakfast IrisX8
+
 ![Lava Iris X8](http://www.lavamobiles.com/lavastorecms/material/product/lava-smartphone-iris-x8-375x700-04022015.jpg)
