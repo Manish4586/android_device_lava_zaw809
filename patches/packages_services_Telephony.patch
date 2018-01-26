@@ -1,0 +1,127 @@
+From 18c44b8cf845f871594ecb4f9f1af491232db331 Mon Sep 17 00:00:00 2001
+From: Josemar Rodrigues <perigeu.inbox@gmail.com>
+Date: Wed, 20 Sep 2017 14:37:42 -0300
+Subject: [PATCH] Fix low in-call volume
+
+Thanks to @Meticulus
+---
+ src/com/android/phone/PhoneUtils.java | 36 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/src/com/android/phone/PhoneUtils.java b/src/com/android/phone/PhoneUtils.java
+index b013b927..32371541 100644
+--- a/src/com/android/phone/PhoneUtils.java
++++ b/src/com/android/phone/PhoneUtils.java
+@@ -1867,6 +1867,38 @@ static boolean isNoiseSuppressionOn(Context context) {
+         }
+     }
+ 
++    /**
++     * Reset the audio stream volume to fix the low in-call volume bug.
++     *
++     * Due to a bug in the OMX system, the audio stream volume is set to 0 after it was set to it's default volume.
++     * Calling PhoneUtils.resetAudioStreamVolume() triggers the system to reset the volume.
++     *
++     * This should be called on every place where is switched between audio modes.
++     *
++     * REMARK: I think it only appears on the voice call stream, but to be sure I also do it on the bluetooth stream.
++     */
++    static void resetAudioStreamVolume() {
++        PhoneGlobals app = PhoneGlobals.getInstance();
++        //BluetoothManager btManager = app.getBluetoothManager();
++        AudioManager audioManager = (AudioManager) app.getSystemService(Context.AUDIO_SERVICE);
++        // determine actual streamType
++        int streamType = AudioManager.STREAM_VOICE_CALL;
++        //if (btManager.isBluetoothHeadsetAudioOn()) {
++        //    streamType = AudioManager.STREAM_BLUETOOTH_SCO;
++        //}
++        // determine volume and 1 level lower volume (lowest level can be 0)
++        int volume = audioManager.getStreamVolume(streamType);
++        int lowerVolume = volume - 1;
++        if (lowerVolume < 0) {
++            lowerVolume = 0;
++        }
++        log("resetAudioStreamVolume (streamType=" + streamType + ", streamVolume=" + volume + ")...");
++        // It's important to change it to another volume before restoring the original volume,
++        // otherwise the volume change will NOT be triggered!!
++        audioManager.setStreamVolume(streamType, lowerVolume, 0);
++        audioManager.setStreamVolume(streamType, volume, 0);
++    }
++
+     static boolean isInEmergencyCall(CallManager cm) {
+         Call fgCall = cm.getActiveFgCall();
+         // isIdle includes checks for the DISCONNECTING/DISCONNECTED state.
+@@ -1889,12 +1921,16 @@ static boolean getMute() {
+     }
+ 
+     /* package */ static void setAudioMode() {
++
++        resetAudioStreamVolume();
+     }
+ 
+     /**
+      * Sets the audio mode per current phone state.
+      */
+     /* package */ static void setAudioMode(CallManager cm) {
++
++        resetAudioStreamVolume();
+     }
+ 
+     /**
+
+From cde69e375aa7ceef46f562863ce91c433e458b06 Mon Sep 17 00:00:00 2001
+From: tribetmen <dima.koloskov.1997@yandex.ru>
+Date: Sun, 1 Oct 2017 20:08:57 +0300
+Subject: [PATCH] =?UTF-8?q?=D0=98=D1=81=D0=BF=D1=80=D0=B0=D0=B2=D0=BB?=
+ =?UTF-8?q?=D1=8F=D0=B5=D1=82=20=D0=BE=D1=88=D0=B8=D0=B1=D0=BA=D1=83=20"?=
+ =?UTF-8?q?=D0=9D=D0=B5=D0=B2=D0=B5=D1=80=D0=BD=D1=8B=D0=B9=20=D0=BD=D0=BE?=
+ =?UTF-8?q?=D0=BC=D0=B5=D1=80"?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/com/android/services/telephony/DisconnectCauseUtil.java | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/src/com/android/services/telephony/DisconnectCauseUtil.java b/src/com/android/services/telephony/DisconnectCauseUtil.java
+index f6285b97..f26f5b4e 100644
+--- a/src/com/android/services/telephony/DisconnectCauseUtil.java
++++ b/src/com/android/services/telephony/DisconnectCauseUtil.java
+@@ -119,7 +119,6 @@ private static int toTelecomDisconnectCauseCode(int telephonyDisconnectCause) {
+             case android.telephony.DisconnectCause.SERVER_ERROR:
+             case android.telephony.DisconnectCause.SERVER_UNREACHABLE:
+             case android.telephony.DisconnectCause.TIMED_OUT:
+-            case android.telephony.DisconnectCause.UNOBTAINABLE_NUMBER:
+             case android.telephony.DisconnectCause.VOICEMAIL_NUMBER_MISSING:
+             case android.telephony.DisconnectCause.DIAL_MODIFIED_TO_USSD:
+             case android.telephony.DisconnectCause.DIAL_MODIFIED_TO_SS:
+@@ -264,9 +263,6 @@ private static CharSequence toTelecomDisconnectCauseLabel(
+                 break;
+ 
+             case android.telephony.DisconnectCause.INVALID_NUMBER:
+-            case android.telephony.DisconnectCause.UNOBTAINABLE_NUMBER:
+-                resourceId = R.string.callFailed_unobtainable_number;
+-                break;
+ 
+             case android.telephony.DisconnectCause.CALL_PULLED:
+                 resourceId = R.string.callEnded_pulled;
+@@ -440,10 +436,6 @@ private static CharSequence toTelecomDisconnectCauseDescription(
+                 resourceId = R.string.callFailed_invalid_number_format;
+                 break;
+ 
+-            case android.telephony.DisconnectCause.UNOBTAINABLE_NUMBER:
+-                resourceId = R.string.callFailed_unobtainable_number;
+-                break;
+-
+             case android.telephony.DisconnectCause.NO_ROUTE_TO_DESTINAON:
+                 resourceId = R.string.callFailed_no_route_to_destination;
+                 break;
+@@ -697,7 +689,6 @@ private static int toTelecomDisconnectCauseTone(int telephonyDisconnectCause) {
+             case android.telephony.DisconnectCause.CALL_FAIL_DESTINATION_OUT_OF_ORDER:
+             case android.telephony.DisconnectCause.BEARER_CAPABILITY_NOT_AUTHORIZED:
+             case android.telephony.DisconnectCause.USER_NOT_MEMBER_OF_CUG:
+-            case android.telephony.DisconnectCause.UNOBTAINABLE_NUMBER:
+                 return ToneGenerator.TONE_SUP_ERROR;
+ 
+             case android.telephony.DisconnectCause.ERROR_UNSPECIFIED:

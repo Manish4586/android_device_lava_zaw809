@@ -1,0 +1,43 @@
+From b792414006cbc16d7e73a588d3b9dccef4392215 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Sun, 3 Sep 2017 19:42:56 +0300
+Subject: [PATCH] Ignore fake NVRAM WiFi when static MAC address isn't present
+
+Add to BoardConfig.mk 'NVRAM_WARNING=true'
+---
+ wpa_supplicant/Android.mk | 4 ++++
+ wpa_supplicant/bss.c      | 6 ++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/wpa_supplicant/Android.mk b/wpa_supplicant/Android.mk
+index d4841ad5..946c6209 100644
+--- a/wpa_supplicant/Android.mk
++++ b/wpa_supplicant/Android.mk
+@@ -273,6 +273,10 @@ L_CFLAGS += -DCONFIG_NO_VLAN
+ OBJS += ibss_rsn.c
+ endif
+ 
++ifeq ($(NVRAM_WARNING),true)
++L_CFLAGS += -DNVRAM_WARNING
++endif
++
+ ifdef CONFIG_P2P
+ OBJS += p2p_supplicant.c
+ OBJS += p2p_supplicant_sd.c
+diff --git a/wpa_supplicant/bss.c b/wpa_supplicant/bss.c
+index 3687a2e5..0a516827 100644
+--- a/wpa_supplicant/bss.c
++++ b/wpa_supplicant/bss.c
+@@ -447,6 +447,12 @@ static struct wpa_bss * wpa_bss_add(struct wpa_supplicant *wpa_s,
+ 		wpa_s->conf->bss_max_count = wpa_s->num_bss + 1;
+ 	}
+ 
++#ifdef NVRAM_WARNING
++	if (strncmp(wpa_ssid_txt(ssid, ssid_len), "NVRAM WARNING: Err =", strlen("NVRAM WARNING: Err =")) == 0) {
++	    return NULL;
++	}
++#endif
++
+ 	dl_list_add_tail(&wpa_s->bss, &bss->list);
+ 	dl_list_add_tail(&wpa_s->bss_id, &bss->list_id);
+ 	wpa_s->num_bss++;

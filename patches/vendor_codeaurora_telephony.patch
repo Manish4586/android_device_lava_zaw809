@@ -1,0 +1,117 @@
+From a11d5c72f40947b860fe1b9a716af177299eaa64 Mon Sep 17 00:00:00 2001
+From: tribetmen <dima.koloskov.1997@yandex.ru>
+Date: Sun, 1 Oct 2017 20:01:46 +0300
+Subject: [PATCH] Fix QtiImsExtUtils
+
+Corrects an error:
+"QtiImsExtUtils: getConfigForPhoneId phoneId is invalid
+QtiImsExtUtils: isCarrierConfigEnabled bundle is null
+QtiImsExtUtils: getImsPhoneId failed. Exception = org.codeaurora.ims.QtiImsException: ImsService is not running"
+---
+ .../org/codeaurora/ims/utils/QtiImsExtUtils.java   | 67 +---------------------
+ 1 file changed, 1 insertion(+), 66 deletions(-)
+
+diff --git a/ims/src/org/codeaurora/ims/utils/QtiImsExtUtils.java b/ims/src/org/codeaurora/ims/utils/QtiImsExtUtils.java
+index bca0ef0..e358577 100644
+--- a/ims/src/org/codeaurora/ims/utils/QtiImsExtUtils.java
++++ b/ims/src/org/codeaurora/ims/utils/QtiImsExtUtils.java
+@@ -34,22 +34,15 @@
+ import android.os.PersistableBundle;
+ import android.os.SystemProperties;
+ import android.telephony.CarrierConfigManager;
+-import android.telephony.SubscriptionInfo;
+-import android.telephony.SubscriptionManager;
+-import android.util.Log;
+ 
+ import org.codeaurora.ims.QtiCallConstants;
+ import org.codeaurora.ims.QtiCarrierConfigs;
+-import org.codeaurora.ims.QtiImsException;
+-import org.codeaurora.ims.QtiImsExtManager;
+ 
+ /**
+  * This class contains QtiImsExt specific utiltity functions.
+  */
+ public class QtiImsExtUtils {
+ 
+-    private static String LOG_TAG = "QtiImsExtUtils";
+-
+     public static final String QTI_IMS_CALL_DEFLECT_NUMBER =
+             "ims_call_deflect_number";
+ 
+@@ -204,11 +197,6 @@ public static boolean isCarrierConfigEnabled(Context context, String carrierConf
+ 
+         PersistableBundle b = getConfigForDefaultImsPhoneId(context);
+ 
+-        if (b == null) {
+-            Log.e(LOG_TAG, "isCarrierConfigEnabled bundle is null");
+-            return false;
+-        }
+-
+         return b.getBoolean(carrierConfig, false);
+     }
+ 
+@@ -226,63 +214,10 @@ public static boolean shallRemoveModifyCallCapability(Context context) {
+     }
+ 
+     private static PersistableBundle getConfigForDefaultImsPhoneId(Context context) {
+-        return getConfigForPhoneId(context, getImsPhoneId());
+-    }
+-
+-    private static PersistableBundle getConfigForPhoneId(Context context, int phoneId) {
+-        if (context == null) {
+-            Log.e(LOG_TAG, "getConfigForPhoneId context is null");
+-            return null;
+-        }
+ 
+         CarrierConfigManager configManager = (CarrierConfigManager) context.getSystemService(
+                 Context.CARRIER_CONFIG_SERVICE);
+-        if (configManager == null) {
+-            Log.e(LOG_TAG, "getConfigForPhoneId configManager is null");
+-            return null;
+-        }
+-
+-        if (phoneId == QtiCallConstants.INVALID_PHONE_ID) {
+-            Log.e(LOG_TAG, "getConfigForPhoneId phoneId is invalid");
+-            return null;
+-        }
+ 
+-        int subId = getSubscriptionIdFromPhoneId(context, phoneId);
+-        if (!SubscriptionManager.isValidSubscriptionId(subId)) {
+-            Log.e(LOG_TAG, "getConfigForPhoneId subId is invalid");
+-            return null;
+-        }
+-
+-        return configManager.getConfigForSubId(subId);
+-    }
+-
+-    /**
+-     * Returns IMS phone id.
+-     */
+-    private static int getImsPhoneId() {
+-        int phoneId = QtiCallConstants.INVALID_PHONE_ID;
+-        try {
+-            phoneId = QtiImsExtManager.getInstance().getImsPhoneId();
+-        } catch (QtiImsException e) {
+-            Log.e(LOG_TAG, "getImsPhoneId failed. Exception = " + e);
+-        }
+-        return phoneId;
+-    }
+-
+-    /**
+-     * Returns subscription id for given phone id.
+-     */
+-    private static int getSubscriptionIdFromPhoneId(Context context, int phoneId) {
+-        SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+-        if (subscriptionManager == null) {
+-            return subscriptionManager.INVALID_SUBSCRIPTION_ID;
+-        }
+-
+-        SubscriptionInfo subInfo = subscriptionManager.
+-                getActiveSubscriptionInfoForSimSlotIndex(phoneId);
+-        if (subInfo == null) {
+-            return subscriptionManager.INVALID_SUBSCRIPTION_ID;
+-        }
+-        return subInfo.getSubscriptionId();
++        return configManager.getConfigForSubId(QtiCallConstants.INVALID_PHONE_ID);
+     }
+ }

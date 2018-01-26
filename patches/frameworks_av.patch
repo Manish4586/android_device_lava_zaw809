@@ -1,0 +1,1657 @@
+From 219283e09cf64c4a16f7aff022ea02b788157b7b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Sun, 3 Sep 2017 20:33:09 +0300
+Subject: [PATCH] Use MediaTek audio stubs
+
+---
+ media/libmedia/Android.mk        |   5 +
+ media/libmedia/MTKAudioStubs.cpp | 236 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 241 insertions(+)
+ create mode 100644 media/libmedia/MTKAudioStubs.cpp
+
+diff --git a/media/libmedia/Android.mk b/media/libmedia/Android.mk
+index df4e4b6f6..1b29de898 100644
+--- a/media/libmedia/Android.mk
++++ b/media/libmedia/Android.mk
+@@ -75,6 +75,11 @@ LOCAL_SRC_FILES:= \
+     StringArray.cpp \
+     AudioPolicy.cpp
+ 
++ifeq ($(MTK_HARDWARE),true)
++LOCAL_SRC_FILES += \
++    MTKAudioStubs.cpp
++endif
++
+ LOCAL_SHARED_LIBRARIES := \
+ 	libui liblog libcutils libutils libbinder libsonivox libicuuc libicui18n libexpat \
+         libcamera_client libstagefright_foundation \
+diff --git a/media/libmedia/MTKAudioStubs.cpp b/media/libmedia/MTKAudioStubs.cpp
+new file mode 100644
+index 000000000..f78ef9892
+--- /dev/null
++++ b/media/libmedia/MTKAudioStubs.cpp
+@@ -0,0 +1,236 @@
++/*
++ *
++ * Copyright 2008, The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
++
++#include <system/audio.h>
++#include <utils/StrongPointer.h>
++#include <media/IAudioFlinger.h>
++#include <hardware/audio.h>
++#include <stdlib.h>
++#include <dlfcn.h>
++
++namespace android {
++
++typedef void (*audio_error_callback)(status_t err);
++
++class AudioSystem
++{
++public:
++    static bool getVoiceUnlockDLInstance();
++    static int GetVoiceUnlockDLLatency();
++    static int SetVoiceUnlockSRC(uint outSR, uint outChannel);
++    static bool stopVoiceUnlockDL();
++    static bool startVoiceUnlockDL();
++    static int ReadRefFromRing(void*buf, uint32_t datasz,void* DLtime);
++    static int GetVoiceUnlockULTime(void* DLtime);
++    static void freeVoiceUnlockDLInstance();
++
++}; // class
++
++bool AudioSystem::getVoiceUnlockDLInstance()
++{
++  return 0;
++}
++
++int AudioSystem::GetVoiceUnlockDLLatency()
++{
++  return 0;
++}
++
++int AudioSystem::SetVoiceUnlockSRC(uint outSR __unused, uint outChannel __unused)
++{
++  return 0;
++}
++
++bool AudioSystem::stopVoiceUnlockDL()
++{
++  return 0;
++}
++
++bool AudioSystem::startVoiceUnlockDL()
++{
++  return 0;
++}
++
++int AudioSystem::ReadRefFromRing(
++        void *buf __unused,
++        uint32_t datasz __unused,
++        void* DLtime __unused
++        )
++{
++  return 0;
++}
++
++int AudioSystem::GetVoiceUnlockULTime(void* DLtime __unused)
++{
++  return 0;
++}
++
++void AudioSystem::freeVoiceUnlockDLInstance()
++{
++  return;
++}
++
++class IATVCtrlClient
++{
++};
++
++class IATVCtrlService: public IInterface
++{
++public:
++  DECLARE_META_INTERFACE(ATVCtrlService);
++};
++
++class BpATVCtrlService : public BpInterface<IATVCtrlService>
++{
++public:
++    BpATVCtrlService(const sp<IBinder>& impl)
++        : BpInterface<IATVCtrlService>(impl)
++    {
++    }
++    virtual ~BpATVCtrlService()
++    {
++    }
++    virtual int ATVCS_matv_init()
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_ps_init(int on __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_set_parameterb(int in __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_suspend(int on __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_shutdown()
++    {
++        return 0;
++    }
++    virtual void ATVCS_matv_chscan(int mode __unused)
++    {
++    }
++    virtual void ATVCS_matv_chscan_stop()
++    {
++    }
++    virtual int ATVCS_matv_get_chtable(int ch __unused, void *entry __unused, int len __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_set_chtable(int ch __unused, void *entry __unused, int len __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_clear_chtable()
++    {
++        return 0;
++    }
++    virtual void ATVCS_matv_change_channel(int ch __unused)
++    {
++    }
++    virtual void ATVCS_matv_set_country(int country __unused)
++    {
++    }
++    virtual void ATVCS_matv_set_tparam(int mode __unused)
++    {
++    }
++    virtual void ATVCS_matv_audio_play()
++    {
++    }
++    virtual void ATVCS_matv_audio_stop()
++    {
++    }
++    virtual int ATVCS_matv_audio_get_format()
++    {
++        return 0;
++    }
++    virtual void ATVCS_matv_audio_set_format(int val __unused)
++    {
++    }
++    virtual int ATVCS_matv_audio_get_sound_system()
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_adjust(int item __unused, int val __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_get_chipdep(int item __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_matv_set_chipdep(int item __unused, int val __unused)
++    {
++        return 0;
++    }
++    virtual void ATVCS_matv_register_callback()
++    {
++    }
++    virtual void registerClient(const sp<IATVCtrlClient>& client __unused)
++    {
++    }
++    virtual void registerClient_FM(const sp<IATVCtrlClient>& client __unused)
++    {
++    }
++    virtual void CLI(char input __unused)
++    {
++    }
++    virtual int ATVCS_fm_powerup(void *parm __unused, int len __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_fm_powerdown()
++    {
++        return 0;
++    }
++    virtual int ATVCS_fm_getrssi()
++    {
++        return 0;
++    }
++    virtual int ATVCS_fm_tune(void *parm __unused, int len __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_fm_seek(void *parm __unused, int len __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_fm_scan(void *parm __unused, int len __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_fm_mute(int val __unused)
++    {
++        return 0;
++    }
++    virtual int ATVCS_fm_getchipid()
++    {
++        return 0;
++    }
++    virtual int ATVCS_fm_isFMPowerUp()
++    {
++        return 0;
++    }
++};
++
++IMPLEMENT_META_INTERFACE(ATVCtrlService, "android.media.IATVCtrlService");
++
++} // namespace
++
+
+
+
+From d8494129e08a97e6eb7e4328e1caee9d8f33d484 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Sun, 3 Sep 2017 21:00:54 +0300
+Subject: [PATCH] Switch to MtkCameraParameters from cm-11.0
+
+---
+ camera/Android.mk                                  |   5 +
+ camera/MtkCameraParameters.cpp                     | 294 +++++++++++++++++
+ include/camera/MtkCameraParameters.h               | 351 +++++++++++++++++++++
+ .../camera/libcameraservice/api1/CameraClient.cpp  |  41 +++
+ 4 files changed, 691 insertions(+)
+ create mode 100644 camera/MtkCameraParameters.cpp
+ create mode 100644 include/camera/MtkCameraParameters.h
+
+diff --git a/camera/Android.mk b/camera/Android.mk
+index 8a32299fa..8ba0e610f 100644
+--- a/camera/Android.mk
++++ b/camera/Android.mk
+@@ -52,6 +52,11 @@ LOCAL_SRC_FILES += \
+ 	CameraUtils.cpp \
+ 	VendorTagDescriptor.cpp
+ 
++ifeq ($(BOARD_HAS_MTK_HARDWARE),true)
++LOCAL_SRC_FILES+= \
++	MtkCameraParameters.cpp
++endif
++
+ LOCAL_SHARED_LIBRARIES := \
+ 	libcutils \
+ 	libutils \
+diff --git a/camera/MtkCameraParameters.cpp b/camera/MtkCameraParameters.cpp
+new file mode 100644
+index 000000000..7d7042aad
+--- /dev/null
++++ b/camera/MtkCameraParameters.cpp
+@@ -0,0 +1,294 @@
++/*
++ *
++ * Copyright 2008, The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#define LOG_TAG "MTKCameraParams"
++#include <utils/Log.h>
++
++#include <string.h>
++#include <stdlib.h>
++#include <camera/MtkCameraParameters.h>
++
++namespace android {
++
++
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++//  App Mode.
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++const char MtkCameraParameters::PROPERTY_KEY_CLIENT_APPMODE[]   = "client.appmode";
++//
++const char MtkCameraParameters::APP_MODE_NAME_DEFAULT[]         = "Default";
++const char MtkCameraParameters::APP_MODE_NAME_MTK_ENG[]         = "MtkEng";
++const char MtkCameraParameters::APP_MODE_NAME_MTK_ATV[]         = "MtkAtv";
++const char MtkCameraParameters::APP_MODE_NAME_MTK_S3D[]         = "MtkS3d";
++const char MtkCameraParameters::APP_MODE_NAME_MTK_VT[]          = "MtkVt";
++const char MtkCameraParameters::APP_MODE_NAME_MTK_PHOTO[]       = "MtkPhoto";
++const char MtkCameraParameters::APP_MODE_NAME_MTK_VIDEO[]       = "MtkVideo";
++const char MtkCameraParameters::APP_MODE_NAME_MTK_ZSD[]         = "MtkZsd";
++
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++//  Scene Mode
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++const char MtkCameraParameters::SCENE_MODE_NORMAL[] = "normal";
++
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++//  Face Beauty
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++const char MtkCameraParameters::KEY_FB_SMOOTH_LEVEL[]       = "fb-smooth-level";
++const char MtkCameraParameters::KEY_FB_SMOOTH_LEVEL_MIN[]   = "fb-smooth-level-min";
++const char MtkCameraParameters::KEY_FB_SMOOTH_LEVEL_MAX[]   = "fb-smooth-level-max";
++//
++const char MtkCameraParameters::KEY_FB_SKIN_COLOR[]         = "fb-skin-color";
++const char MtkCameraParameters::KEY_FB_SKIN_COLOR_MIN[]     = "fb-skin-color-min";
++const char MtkCameraParameters::KEY_FB_SKIN_COLOR_MAX[]     = "fb-skin-color-max";
++//
++const char MtkCameraParameters::KEY_FB_SHARP[]              = "fb-sharp";
++const char MtkCameraParameters::KEY_FB_SHARP_MIN[]          = "fb-sharp-min";
++const char MtkCameraParameters::KEY_FB_SHARP_MAX[]          = "fb-sharp-max";
++//
++const char MtkCameraParameters::KEY_FB_ENLARGE_EYE[]        = "fb-enlarge-eye";
++const char MtkCameraParameters::KEY_FB_ENLARGE_EYE_MIN[]    = "fb-enlarge-eye-min";
++const char MtkCameraParameters::KEY_FB_ENLARGE_EYE_MAX[]    = "fb-enlarge-eye-max";
++//
++const char MtkCameraParameters::KEY_FB_SLIM_FACE[]          = "fb-slim-face";
++const char MtkCameraParameters::KEY_FB_SLIM_FACE_MIN[]      = "fb-slim-face-min";
++const char MtkCameraParameters::KEY_FB_SLIM_FACE_MAX[]      = "fb-slim-face-max";
++//
++const char MtkCameraParameters::KEY_FB_EXTREME_BEAUTY[]     = "fb-extreme-beauty";
++//
++const char MtkCameraParameters::KEY_FACE_BEAUTY[]           = "face-beauty";
++
++
++//
++const char MtkCameraParameters::KEY_EXPOSURE[] = "exposure";
++const char MtkCameraParameters::KEY_EXPOSURE_METER[] = "exposure-meter";
++const char MtkCameraParameters::KEY_ISO_SPEED[] = "iso-speed";
++const char MtkCameraParameters::KEY_AE_MODE[] = "ae-mode";
++const char MtkCameraParameters::KEY_FOCUS_METER[] = "focus-meter";
++const char MtkCameraParameters::KEY_EDGE[] = "edge";
++const char MtkCameraParameters::KEY_HUE[] = "hue";
++const char MtkCameraParameters::KEY_SATURATION[] = "saturation";
++const char MtkCameraParameters::KEY_BRIGHTNESS[] = "brightness";
++const char MtkCameraParameters::KEY_CONTRAST[] = "contrast";
++const char MtkCameraParameters::KEY_AF_LAMP_MODE [] = "aflamp-mode";
++const char MtkCameraParameters::KEY_STEREO_3D_PREVIEW_SIZE[] = "stereo3d-preview-size";
++const char MtkCameraParameters::KEY_STEREO_3D_PICTURE_SIZE[] = "stereo3d-picture-size";
++const char MtkCameraParameters::KEY_STEREO_3D_TYPE [] = "stereo3d-type";
++const char MtkCameraParameters::KEY_STEREO_3D_MODE [] = "stereo3d-mode";
++const char MtkCameraParameters::KEY_STEREO_3D_IMAGE_FORMAT [] = "stereo3d-image-format";
++
++// ZSD
++const char MtkCameraParameters::KEY_ZSD_MODE[] = "zsd-mode"; 
++const char MtkCameraParameters::KEY_SUPPORTED_ZSD_MODE[] = "zsd-supported";
++//
++const char MtkCameraParameters::KEY_FPS_MODE[] = "fps-mode";
++//
++const char MtkCameraParameters::KEY_FOCUS_DRAW[] = "af-draw";
++//
++const char MtkCameraParameters::KEY_CAPTURE_MODE[] = "cap-mode";
++const char MtkCameraParameters::KEY_SUPPORTED_CAPTURE_MODES[] = "cap-mode-values";
++const char MtkCameraParameters::KEY_CAPTURE_PATH[] = "capfname";
++const char MtkCameraParameters::KEY_BURST_SHOT_NUM[] = "burst-num";
++//
++const char MtkCameraParameters::KEY_MATV_PREVIEW_DELAY[] = "tv-delay";
++const char MtkCameraParameters::KEY_PANORAMA_IDX[] = "pano-idx";
++const char MtkCameraParameters::KEY_PANORAMA_DIR[] = "pano-dir";
++
++// Values for KEY_EXPOSURE
++const char MtkCameraParameters::EXPOSURE_METER_SPOT[] = "spot";
++const char MtkCameraParameters::EXPOSURE_METER_CENTER[] = "center";
++const char MtkCameraParameters::EXPOSURE_METER_AVERAGE[] = "average";
++
++// Valeus for KEY_ISO_SPEED
++const char MtkCameraParameters::ISO_SPEED_AUTO[] = "auto";
++const char MtkCameraParameters::ISO_SPEED_100[] = "100";
++const char MtkCameraParameters::ISO_SPEED_200[] = "200";
++const char MtkCameraParameters::ISO_SPEED_400[] = "400";
++const char MtkCameraParameters::ISO_SPEED_800[] = "800";
++const char MtkCameraParameters::ISO_SPEED_1600[] = "1600";
++
++// Values for KEY_AE_MODE = "ae-mode"
++
++// Values for KEY_FOCUS_METER
++const char MtkCameraParameters::FOCUS_METER_SPOT[] = "spot";
++const char MtkCameraParameters::FOCUS_METER_MULTI[] = "multi";
++
++// AWB2PASS
++const char MtkCameraParameters::KEY_AWB2PASS[] = "awb-2pass"; 
++
++
++//
++//  Camera Mode
++const char MtkCameraParameters::KEY_CAMERA_MODE[] = "mtk-cam-mode";
++// Values for KEY_CAMERA_MODE
++const int MtkCameraParameters::CAMERA_MODE_NORMAL  = 0;
++const int MtkCameraParameters::CAMERA_MODE_MTK_PRV = 1;
++const int MtkCameraParameters::CAMERA_MODE_MTK_VDO = 2;
++const int MtkCameraParameters::CAMERA_MODE_MTK_VT  = 3;
++
++// Values for KEY_FPS_MODE
++const int MtkCameraParameters::FPS_MODE_NORMAL = 0;
++const int MtkCameraParameters::FPS_MODE_FIX = 1;
++
++// Values for raw save mode
++
++// Values for KEY_FOCUS_DRAW
++
++// Values for capture mode
++const char MtkCameraParameters::CAPTURE_MODE_PANORAMA_SHOT[] = "panoramashot";
++const char MtkCameraParameters::CAPTURE_MODE_BURST_SHOT[] = "burstshot";
++const char MtkCameraParameters::CAPTURE_MODE_NORMAL[] = "normal";
++const char MtkCameraParameters::CAPTURE_MODE_BEST_SHOT[] = "bestshot";
++const char MtkCameraParameters::CAPTURE_MODE_EV_BRACKET_SHOT[] = "evbracketshot";
++const char MtkCameraParameters::CAPTURE_MODE_SMILE_SHOT[] = "smileshot";
++const char MtkCameraParameters::CAPTURE_MODE_MAV_SHOT[] = "mav"; 
++const char MtkCameraParameters::CAPTURE_MODE_AUTO_PANORAMA_SHOT[] = "autorama"; 
++const char MtkCameraParameters::CAPTURE_MODE_MOTION_TRACK_SHOT[] = "motiontrack"; 
++const char MtkCameraParameters::CAPTURE_MODE_HDR_SHOT[] = "hdr"; 
++const char MtkCameraParameters::CAPTURE_MODE_ASD_SHOT[] = "asd"; 
++const char MtkCameraParameters::CAPTURE_MODE_ZSD_SHOT[] = "zsd";
++const char MtkCameraParameters::CAPTURE_MODE_PANO_3D[] = "pano_3d"; 
++const char MtkCameraParameters::CAPTURE_MODE_SINGLE_3D[] = "single_3d"; 
++const char MtkCameraParameters::CAPTURE_MODE_FACE_BEAUTY[] = "face_beauty"; 
++const char MtkCameraParameters::CAPTURE_MODE_CONTINUOUS_SHOT[] = "continuousshot";
++const char MtkCameraParameters::CAPTURE_MODE_MULTI_MOTION[] = "multi_motion";
++const char MtkCameraParameters::CAPTURE_MODE_GESTURE_SHOT[] = "gestureshot";
++
++// Values for panorama direction settings
++const char MtkCameraParameters::PANORAMA_DIR_RIGHT[] = "right";
++const char MtkCameraParameters::PANORAMA_DIR_LEFT[] = "left";
++const char MtkCameraParameters::PANORAMA_DIR_TOP[] = "top";
++const char MtkCameraParameters::PANORAMA_DIR_DOWN[] = "down";
++
++//
++const int MtkCameraParameters::ENABLE = 1;
++const int MtkCameraParameters::DISABLE = 0;
++
++// Values for KEY_EDGE, KEY_HUE, KEY_SATURATION, KEY_BRIGHTNESS, KEY_CONTRAST
++const char MtkCameraParameters::HIGH[] = "high";
++const char MtkCameraParameters::MIDDLE[] = "middle";
++const char MtkCameraParameters::LOW[] = "low";
++
++// Preview Internal Format.
++const char MtkCameraParameters::KEY_PREVIEW_INT_FORMAT[] = "prv-int-fmt";
++
++// Pixel color formats for KEY_PREVIEW_FORMAT, KEY_PICTURE_FORMAT,
++// and KEY_VIDEO_FRAME_FORMAT
++const char MtkCameraParameters::PIXEL_FORMAT_YUV420I[] = "yuv420i-yyuvyy-3plane";
++const char MtkCameraParameters::PIXEL_FORMAT_YV12_GPU[] = "yv12-gpu";
++const char MtkCameraParameters::PIXEL_FORMAT_YUV422I_UYVY[] = "yuv422i-uyvy";
++const char MtkCameraParameters::PIXEL_FORMAT_YUV422I_VYUY[] = "yuv422i-vyuy";
++const char MtkCameraParameters::PIXEL_FORMAT_YUV422I_YVYU[] = "yuv422i-yvyu";
++
++const char MtkCameraParameters::PIXEL_FORMAT_BAYER8[] = "bayer8"; 
++const char MtkCameraParameters::PIXEL_FORMAT_BAYER10[] = "bayer10";  
++
++const char MtkCameraParameters::KEY_BRIGHTNESS_VALUE[] = "brightness_value";
++
++// ISP Operation mode for meta mode use 
++const char MtkCameraParameters::KEY_ISP_MODE[] = "isp-mode"; 
++// AF 
++const char MtkCameraParameters::KEY_AF_X[] = "af-x"; 
++const char MtkCameraParameters::KEY_AF_Y[] = "af-y"; 
++// Effect 
++const char MtkCameraParameters::EFFECT_SEPIA_BLUE[] = "sepiablue";
++const char MtkCameraParameters::EFFECT_SEPIA_GREEN[] = "sepiagreen";
++
++//
++//  on/off => FIXME: should be replaced with TRUE[]
++const char MtkCameraParameters::ON[] = "on";
++const char MtkCameraParameters::OFF[] = "off";
++// 
++const char MtkCameraParameters::WHITE_BALANCE_TUNGSTEN[] = "tungsten";
++//
++const char MtkCameraParameters::ISO_SPEED_ENG[] = "iso-speed-eng";
++const char MtkCameraParameters::KEY_RAW_SAVE_MODE[] = "rawsave-mode";
++const char MtkCameraParameters::KEY_RAW_PATH[] = "rawfname";
++
++const char MtkCameraParameters::KEY_FAST_CONTINUOUS_SHOT[] = "fast-continuous-shot";
++
++const char MtkCameraParameters::KEY_CSHOT_INDICATOR[] = "cshot-indicator";
++
++// AF EM MODE
++const char MtkCameraParameters::KEY_FOCUS_ENG_MODE[]		= "afeng-mode";
++const char MtkCameraParameters::KEY_FOCUS_ENG_STEP[] 		= "afeng-pos";
++const char MtkCameraParameters::KEY_FOCUS_ENG_MAX_STEP[] 	= "afeng-max-focus-step";
++const char MtkCameraParameters::KEY_FOCUS_ENG_MIN_STEP[] 	= "afeng-min-focus-step";
++const char MtkCameraParameters::KEY_FOCUS_ENG_BEST_STEP[]   = "afeng-best-focus-step";
++const char MtkCameraParameters::KEY_RAW_DUMP_FLAG[]         = "afeng_raw_dump_flag";
++const char MtkCameraParameters::KEY_PREVIEW_DUMP_RESOLUTION[] = "preview-dump-resolution";
++// Values for KEY_PREVIEW_DUMP_RESOLUTION
++const int MtkCameraParameters::PREVIEW_DUMP_RESOLUTION_NORMAL  = 0;
++const int MtkCameraParameters::PREVIEW_DUMP_RESOLUTION_CROP  = 1;
++//
++const char MtkCameraParameters::KEY_MAX_NUM_DETECTED_OBJECT[] = "max-num-ot";
++//
++const char MtkCameraParameters::KEY_VIDEO_HDR[] = "video-hdr"; 
++
++// KEY for [Engineer Mode] Add new camera paramters for new requirements
++const char MtkCameraParameters::KEY_ENG_AE_ENABLE[] = "eng-ae-enable";
++const char MtkCameraParameters::KEY_ENG_PREVIEW_SHUTTER_SPEED[] = "eng-preview-shutter-speed";
++const char MtkCameraParameters::KEY_ENG_PREVIEW_SENSOR_GAIN[] = "eng-preview-sensor-gain";
++const char MtkCameraParameters::KEY_ENG_PREVIEW_ISP_GAIN[] = "eng-preview-isp-gain";
++const char MtkCameraParameters::KEY_ENG_PREVIEW_AE_INDEX[] = "eng-preview-ae-index";
++const char MtkCameraParameters::KEY_ENG_CAPTURE_SENSOR_GAIN[] = "eng-capture-sensor-gain";
++const char MtkCameraParameters::KEY_ENG_CAPTURE_ISP_GAIN[] = "eng-capture-isp-gain";
++const char MtkCameraParameters::KEY_ENG_CAPTURE_SHUTTER_SPEED[] = "eng-capture-shutter-speed";
++const char MtkCameraParameters::KEY_ENG_CAPTURE_ISO[] = "eng-capture-iso";
++const char MtkCameraParameters::KEY_ENG_FLASH_DUTY_VALUE[] = "eng-flash-duty-value";
++const char MtkCameraParameters::KEY_ENG_FLASH_DUTY_MIN[] = "eng-flash-duty-min";
++const char MtkCameraParameters::KEY_ENG_FLASH_DUTY_MAX[] = "eng-flash-duty-max";
++const char MtkCameraParameters::KEY_ENG_ZSD_ENABLE[] = "eng-zsd-enable";
++const char MtkCameraParameters::KEY_SENSOR_TYPE[] = "sensor-type";
++const char MtkCameraParameters::KEY_ENG_PREVIEW_FPS[] = "eng-preview-fps";
++const char MtkCameraParameters::KEY_ENG_MSG[] = "eng-msg";
++const int  MtkCameraParameters::KEY_ENG_FLASH_DUTY_DEFAULT_VALUE = -1;
++const int  MtkCameraParameters::KEY_ENG_FLASH_STEP_DEFAULT_VALUE = -1;
++const char MtkCameraParameters::KEY_ENG_FLASH_STEP_MIN[] = "eng-flash-step-min";
++const char MtkCameraParameters::KEY_ENG_FLASH_STEP_MAX[] = "eng-flash-step-max";
++const char MtkCameraParameters::KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL[] = "eng-focus-fullscan-frame-interval";
++const char MtkCameraParameters::KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL_MAX[] = "eng-focus-fullscan-frame-interval-max";
++const char MtkCameraParameters::KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL_MIN[] = "eng-focus-fullscan-frame-interval-min";
++const int  MtkCameraParameters::KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL_MAX_DEFAULT = 65535;
++const int  MtkCameraParameters::KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL_MIN_DEFAULT = 0;
++const char MtkCameraParameters::KEY_ENG_PREVIEW_FRAME_INTERVAL_IN_US[] = "eng-preview-frame-interval-in-us";
++const char MtkCameraParameters::KEY_ENG_PARAMETER1[] = "key-eng-parameter1";
++const char MtkCameraParameters::KEY_ENG_PARAMETER2[] = "key-eng-parameter2";
++const char MtkCameraParameters::KEY_ENG_PARAMETER3[] = "key-eng-parameter3";
++
++const char MtkCameraParameters::KEY_ENG_SAVE_SHADING_TABLE[] = "eng-save-shading-table";
++const char MtkCameraParameters::KEY_ENG_SHADING_TABLE[] = "eng-shading-table";
++const int MtkCameraParameters::KEY_ENG_SHADING_TABLE_AUTO = 0;
++const int MtkCameraParameters::KEY_ENG_SHADING_TABLE_LOW = 1;
++const int MtkCameraParameters::KEY_ENG_SHADING_TABLE_MIDDLE = 2;
++const int MtkCameraParameters::KEY_ENG_SHADING_TABLE_HIGH = 3;
++const int MtkCameraParameters::KEY_ENG_SHADING_TABLE_TSF = 4;
++
++// KEY for [Engineer Mode] Add new camera paramters for ev calibration
++const char MtkCameraParameters::KEY_ENG_EV_CALBRATION_OFFSET_VALUE[] = "eng-ev-cal-offset";
++
++#ifdef MTK_SLOW_MOTION_VIDEO_SUPPORT
++// High Speed Video Record
++const char MtkCameraParameters::KEY_HSVR_PRV_SIZE[] = "hsvr-prv-size";
++const char MtkCameraParameters::KEY_SUPPORTED_HSVR_PRV_SIZE[] = "hsvr-prv-size-values";
++const char MtkCameraParameters::KEY_HSVR_PRV_FPS[] = "hsvr-prv-fps";
++const char MtkCameraParameters::KEY_SUPPORTED_HSVR_PRV_FPS[] = "hsvr-prv-fps-values";
++#endif
++const char MtkCameraParameters::KEY_DXOEIS_ONOFF[] = "dxo-eis";
++const char MtkCameraParameters::KEY_FIX_EXPOSURE_TIME[] = "fix-exposure-time";
++
++}; // namespace android
++
+diff --git a/include/camera/MtkCameraParameters.h b/include/camera/MtkCameraParameters.h
+new file mode 100644
+index 000000000..e9456d53d
+--- /dev/null
++++ b/include/camera/MtkCameraParameters.h
+@@ -0,0 +1,351 @@
++/*
++ * Copyright (C) 2008 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef ANDROID_HARDWARE_MTK_CAMERA_PARAMETERS_H
++#define ANDROID_HARDWARE_MTK_CAMERA_PARAMETERS_H
++
++#include <camera/CameraParameters.h>
++
++namespace android {
++
++
++/**  
++ * @class      MtkCameraParameters
++ * @brief      MTK-proprietary camera parameters.
++ * @details    This class is derived from CameraParameters and defines MTK-proprietary camera parameters.
++ */
++class MtkCameraParameters : public CameraParameters
++{
++public:
++    MtkCameraParameters() : CameraParameters() {}
++    MtkCameraParameters(const String8 &params) { unflatten(params); }
++    ~MtkCameraParameters()  {}
++
++    MtkCameraParameters& operator=(CameraParameters const& params)
++    {
++        unflatten(params.flatten());
++        return  (*this);
++    }
++    //
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++//  App Mode.
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++    static const char PROPERTY_KEY_CLIENT_APPMODE[];
++    //
++    static const char APP_MODE_NAME_DEFAULT[];
++    static const char APP_MODE_NAME_MTK_ENG[];
++    static const char APP_MODE_NAME_MTK_ATV[];
++    static const char APP_MODE_NAME_MTK_S3D[];
++    static const char APP_MODE_NAME_MTK_VT[];
++    static const char APP_MODE_NAME_MTK_PHOTO[];
++    static const char APP_MODE_NAME_MTK_VIDEO[];
++    static const char APP_MODE_NAME_MTK_ZSD[];
++    //
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++//  Scene Mode
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++    static const char SCENE_MODE_NORMAL[];
++    //
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++//  Face Beauty
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++    static const char KEY_FB_SMOOTH_LEVEL[];
++    static const char KEY_FB_SMOOTH_LEVEL_MIN[];
++    static const char KEY_FB_SMOOTH_LEVEL_MAX[];
++    //
++    static const char KEY_FB_SKIN_COLOR[];
++    static const char KEY_FB_SKIN_COLOR_MIN[];
++    static const char KEY_FB_SKIN_COLOR_MAX[];
++    //
++    static const char KEY_FB_SHARP[];
++    static const char KEY_FB_SHARP_MIN[];
++    static const char KEY_FB_SHARP_MAX[];
++    //
++    static const char KEY_FB_ENLARGE_EYE[];
++    static const char KEY_FB_ENLARGE_EYE_MIN[];
++    static const char KEY_FB_ENLARGE_EYE_MAX[];
++    //
++    static const char KEY_FB_SLIM_FACE[];
++    static const char KEY_FB_SLIM_FACE_MIN[];
++    static const char KEY_FB_SLIM_FACE_MAX[];
++    //
++    static const char KEY_FB_EXTREME_BEAUTY[];
++    //
++    static const char KEY_FACE_BEAUTY[];
++    //
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++//  
++//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++    static const char KEY_EXPOSURE[];
++    static const char KEY_EXPOSURE_METER[];
++    static const char KEY_ISO_SPEED[];
++    static const char KEY_AE_MODE[];
++    static const char KEY_FOCUS_METER[];
++    static const char KEY_EDGE[];
++    static const char KEY_HUE[];
++    static const char KEY_SATURATION[];
++    static const char KEY_BRIGHTNESS[];
++    static const char KEY_CONTRAST[];
++    static const char KEY_ZSD_MODE[];	
++    static const char KEY_SUPPORTED_ZSD_MODE[];
++    static const char KEY_AWB2PASS[];	
++    static const char KEY_AF_LAMP_MODE [];
++
++    static const char KEY_STEREO_3D_PREVIEW_SIZE[];
++    static const char KEY_STEREO_3D_PICTURE_SIZE[];    
++    static const char KEY_STEREO_3D_TYPE [];		
++    static const char KEY_STEREO_3D_MODE [];
++    static const char KEY_STEREO_3D_IMAGE_FORMAT [];	
++    //
++    static const char KEY_FPS_MODE[];       // normal,fix
++    //
++    static const char KEY_FOCUS_DRAW[];     // 0,1
++    //
++    static const char KEY_CAPTURE_MODE[];   // normal,bestshot,evbracketshot,burstshot,smileshot,panoramashot
++    static const char KEY_SUPPORTED_CAPTURE_MODES[];
++    static const char KEY_CAPTURE_PATH[];
++    static const char KEY_BURST_SHOT_NUM[];
++    //
++    static const char KEY_MATV_PREVIEW_DELAY[];
++    //
++    static const char KEY_PANORAMA_IDX[];
++    static const char KEY_PANORAMA_DIR[];   // right,left,top,bottom
++    //
++    static const char KEY_SENSOR_DEV[];    // main,sub,atv
++    static const char KEY_SUPPORTED_SENSOR_DEVS[];
++	
++    // Values for KEY_EXPOSURE
++    static const char EXPOSURE_METER_SPOT[];
++    static const char EXPOSURE_METER_CENTER[];
++    static const char EXPOSURE_METER_AVERAGE[];
++
++    // Valeus for KEY_ISO_SPEED
++    static const char ISO_SPEED_AUTO[];
++    static const char ISO_SPEED_100[];
++    static const char ISO_SPEED_200[];
++    static const char ISO_SPEED_400[];
++    static const char ISO_SPEED_800[];
++    static const char ISO_SPEED_1600[];
++
++    // Values for KEY_FOCUS_METER
++    static const char FOCUS_METER_SPOT[];
++    static const char FOCUS_METER_MULTI[];
++
++    static const char KEY_CAMERA_MODE[];
++    // Values for KEY_CAMERA_MODE
++    static const int CAMERA_MODE_NORMAL;
++    static const int CAMERA_MODE_MTK_PRV;
++    static const int CAMERA_MODE_MTK_VDO;
++    static const int CAMERA_MODE_MTK_VT;
++
++    // Values for KEY_FPS_MODE
++    static const int FPS_MODE_NORMAL;
++    static const int FPS_MODE_FIX;
++
++    // Values for KEY_CAPTURE_MODE
++    static const char CAPTURE_MODE_PANORAMA_SHOT[];
++    static const char CAPTURE_MODE_BURST_SHOT[];
++    static const char CAPTURE_MODE_NORMAL[];
++    static const char CAPTURE_MODE_BEST_SHOT[];
++    static const char CAPTURE_MODE_EV_BRACKET_SHOT[];
++    static const char CAPTURE_MODE_SMILE_SHOT[];
++    static const char CAPTURE_MODE_AUTO_PANORAMA_SHOT[]; 
++    static const char CAPTURE_MODE_MOTION_TRACK_SHOT[]; 
++    static const char CAPTURE_MODE_MAV_SHOT[]; 
++    static const char CAPTURE_MODE_HDR_SHOT[]; 
++    static const char CAPTURE_MODE_ASD_SHOT[];
++    static const char CAPTURE_MODE_ZSD_SHOT[];
++    static const char CAPTURE_MODE_PANO_3D[]; 
++    static const char CAPTURE_MODE_SINGLE_3D[]; 
++    static const char CAPTURE_MODE_FACE_BEAUTY[]; 	
++    static const char CAPTURE_MODE_CONTINUOUS_SHOT[];
++    static const char CAPTURE_MODE_MULTI_MOTION[];
++    static const char CAPTURE_MODE_GESTURE_SHOT[];
++
++    // Values for KEY_PANORAMA_DIR
++    static const char PANORAMA_DIR_RIGHT[];
++    static const char PANORAMA_DIR_LEFT[];
++    static const char PANORAMA_DIR_TOP[];
++    static const char PANORAMA_DIR_DOWN[];
++    //
++    static const int ENABLE;
++    static const int DISABLE;
++
++    // Values for KEY_EDGE, KEY_HUE, KEY_SATURATION, KEY_BRIGHTNESS, KEY_CONTRAST
++    static const char HIGH[];
++    static const char MIDDLE[];
++    static const char LOW[];
++
++    // Preview Internal Format.
++    static const char KEY_PREVIEW_INT_FORMAT[];
++
++    // Pixel color formats for KEY_PREVIEW_FORMAT, KEY_PICTURE_FORMAT,
++    // and KEY_VIDEO_FRAME_FORMAT
++    static const char PIXEL_FORMAT_YUV420I[]; // I420
++
++    /**
++     * @var PIXEL_FORMAT_YV12_GPU
++     *
++     * GPU YUV format:
++     *
++     * YV12 is a 4:2:0 YCrCb planar format comprised of a WxH Y plane followed
++     * by (W/2) x (H/2) Cr and Cb planes.
++     *
++     * This format assumes
++     * - an even width
++     * - an even height
++     * - a vertical stride equal to the height
++     * - a horizontal stride multiple of 32/16/16 pixels for y/cr/cb respectively
++     *   i.e.
++     *   y_stride = ALIGN(width, 32)
++     *   c_stride = y_stride / 2
++     *
++     *   y_size = y_stride * height
++     *   c_size = c_stride * height / 2
++     *   size = y_size + c_size * 2
++     *   cr_offset = y_size
++     *   cb_offset = y_size + c_size
++     *
++     *   for example:
++     *      width/height = 176x144
++     *      y stride     = 192x144
++     *      cr stride    = 96x72
++     *      cb stride    = 96x72
++     *   
++     */
++    static const char PIXEL_FORMAT_YV12_GPU[];
++
++    /*
++     *  YUV422 format, 1 plane (UYVY)
++     *
++     *  Effective bits per pixel : 16 
++     *
++     *  Y sample at every pixel, U and V sampled at every second pixel horizontally on each line. 
++     *  A macropixel contains 2 pixels in 1 uint32_t.
++     *
++     */
++    static const char PIXEL_FORMAT_YUV422I_UYVY[];   
++    //
++    static const char PIXEL_FORMAT_YUV422I_VYUY[];
++    static const char PIXEL_FORMAT_YUV422I_YVYU[];
++    static const char PIXEL_FORMAT_BAYER8[]; 
++    static const char PIXEL_FORMAT_BAYER10[];    
++
++    /**
++     * @var KEY_BRIGHTNESS_VALUE
++     *
++     * This is a key string of brightness value, scaled by 10.
++     *
++     */
++    static const char KEY_BRIGHTNESS_VALUE[];
++
++    // ISP Operation mode for meta mode use 
++    static const char KEY_ISP_MODE[];
++    // AF 
++    static const char KEY_AF_X[]; 
++    static const char KEY_AF_Y[]; 
++    static const char KEY_FOCUS_ENG_MAX_STEP[];
++    static const char KEY_FOCUS_ENG_MIN_STEP[];
++    static const char KEY_FOCUS_ENG_BEST_STEP[];
++    static const char KEY_RAW_DUMP_FLAG[];
++    static const char KEY_PREVIEW_DUMP_RESOLUTION[];
++    static const int  PREVIEW_DUMP_RESOLUTION_NORMAL;
++    static const int  PREVIEW_DUMP_RESOLUTION_CROP;
++
++    // Values for effect 
++    static const char EFFECT_SEPIA_BLUE[];
++    static const char EFFECT_SEPIA_GREEN[];    
++    // Values for AWB 
++    static const char WHITE_BALANCE_TUNGSTEN[];
++    // Eng
++    static const char ISO_SPEED_ENG[];
++    static const char KEY_FOCUS_ENG_MODE[]; // 0,1,2,3 (0: normal)
++    static const char KEY_FOCUS_ENG_STEP[];	
++    static const char KEY_RAW_SAVE_MODE[];  // on, off
++    static const char KEY_RAW_PATH[];	
++
++	// KEY for Continuous shot speed
++    static const char KEY_FAST_CONTINUOUS_SHOT[];
++
++    static const char KEY_VIDEO_HDR[];
++
++    static const char KEY_MAX_NUM_DETECTED_OBJECT[];
++
++    // KEY for c_shot indicator 
++    static const char KEY_CSHOT_INDICATOR[];
++
++    // KEY for [Engineer Mode] Add new camera paramters for new requirements
++    static const char KEY_ENG_AE_ENABLE[];
++    static const char KEY_ENG_PREVIEW_SHUTTER_SPEED[];
++    static const char KEY_ENG_PREVIEW_SENSOR_GAIN[];
++    static const char KEY_ENG_PREVIEW_ISP_GAIN[];
++    static const char KEY_ENG_PREVIEW_AE_INDEX[];
++    static const char KEY_ENG_CAPTURE_SENSOR_GAIN[];
++    static const char KEY_ENG_CAPTURE_ISP_GAIN[];
++    static const char KEY_ENG_CAPTURE_SHUTTER_SPEED[];
++    static const char KEY_ENG_CAPTURE_ISO[];
++    static const char KEY_ENG_FLASH_DUTY_VALUE[];
++    static const char KEY_ENG_FLASH_DUTY_MIN[];
++    static const char KEY_ENG_FLASH_DUTY_MAX[];
++    static const char KEY_ENG_ZSD_ENABLE[];
++    static const char KEY_SENSOR_TYPE[];
++    static const char KEY_ENG_PREVIEW_FPS[];
++    static const char KEY_ENG_MSG[];
++    static const int  KEY_ENG_FLASH_DUTY_DEFAULT_VALUE;
++    static const int  KEY_ENG_FLASH_STEP_DEFAULT_VALUE;
++    static const char KEY_ENG_FLASH_STEP_MIN[];
++    static const char KEY_ENG_FLASH_STEP_MAX[];
++    static const char KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL[];
++    static const char KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL_MAX[];
++    static const char KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL_MIN[];
++    static const int  KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL_MAX_DEFAULT;
++    static const int  KEY_ENG_FOCUS_FULLSCAN_FRAME_INTERVAL_MIN_DEFAULT;
++    static const char KEY_ENG_PREVIEW_FRAME_INTERVAL_IN_US[];
++    static const char KEY_ENG_PARAMETER1[];
++    static const char KEY_ENG_PARAMETER2[];
++    static const char KEY_ENG_PARAMETER3[];
++
++    static const char KEY_ENG_SAVE_SHADING_TABLE[];
++    static const char KEY_ENG_SHADING_TABLE[];
++    static const int KEY_ENG_SHADING_TABLE_AUTO;
++    static const int KEY_ENG_SHADING_TABLE_LOW;
++    static const int KEY_ENG_SHADING_TABLE_MIDDLE;
++    static const int KEY_ENG_SHADING_TABLE_HIGH;
++    static const int KEY_ENG_SHADING_TABLE_TSF;
++
++    // KEY for [Engineer Mode] Add new camera paramters for ev calibration
++    static const char KEY_ENG_EV_CALBRATION_OFFSET_VALUE[];
++
++#ifdef MTK_SLOW_MOTION_VIDEO_SUPPORT
++    // High Speed Video Record
++    static const char KEY_HSVR_PRV_SIZE[];
++    static const char KEY_SUPPORTED_HSVR_PRV_SIZE[];
++    static const char KEY_HSVR_PRV_FPS[];
++    static const char KEY_SUPPORTED_HSVR_PRV_FPS[];
++#endif
++
++    static const char KEY_DXOEIS_ONOFF[];
++    static const char KEY_FIX_EXPOSURE_TIME[];
++	//
++public:     ////    on/off => FIXME: should be replaced with TRUE[]
++    static const char ON[];
++    static const char OFF[];
++};
++
++}; // namespace android
++
++#endif
++
+diff --git a/services/camera/libcameraservice/api1/CameraClient.cpp b/services/camera/libcameraservice/api1/CameraClient.cpp
+index b02d8f967..366281906 100644
+--- a/services/camera/libcameraservice/api1/CameraClient.cpp
++++ b/services/camera/libcameraservice/api1/CameraClient.cpp
+@@ -750,6 +750,9 @@ void CameraClient::disableMsgType(int32_t msgType) {
+ 
+ #define CHECK_MESSAGE_INTERVAL 10 // 10ms
+ bool CameraClient::lockIfMessageWanted(int32_t msgType) {
++#ifdef MTK_HARDWARE
++    return true;
++#endif
+     int sleepCount = 0;
+     while (mMsgEnabled & msgType) {
+         if (mLock.tryLock() == NO_ERROR) {
+@@ -793,6 +796,17 @@ bool CameraClient::lockIfMessageWanted(int32_t msgType) {
+ void CameraClient::notifyCallback(int32_t msgType, int32_t ext1,
+         int32_t ext2, void* user) {
+     LOG2("notifyCallback(%d)", msgType);
++#ifdef MTK_HARDWARE
++    if (msgType == 0x40000000) { //MTK_CAMERA_MSG_EXT_NOTIFY
++        if (ext1 == 0x11) { //MTK_CAMERA_MSG_EXT_NOTIFY_SHUTTER
++            msgType = CAMERA_MSG_SHUTTER;
++        }
++        if (ext1 == 0x10) { //MTK_CAMERA_MSG_EXT_CAPTURE_DONE
++            return;
++        }
++        LOG2("MtknotifyCallback(0x%x, 0x%x)", ext1, ext2);
++    }
++#endif
+ 
+     sp<CameraClient> client = static_cast<CameraClient*>(getClientFromCookie(user).get());
+     if (client.get() == nullptr) return;
+@@ -823,6 +837,33 @@ void CameraClient::dataCallback(int32_t msgType,
+         client->handleGenericNotify(CAMERA_MSG_ERROR, UNKNOWN_ERROR, 0);
+         return;
+     }
++#ifdef MTK_HARDWARE
++    if (msgType == 0x80000000) { //MTK_CAMERA_MSG_EXT_DATA
++        struct DataHeader {
++            int        extMsgType;
++        } dataHeader;
++        sp<IMemoryHeap> heap = 0;
++        ssize_t         offset = 0;
++        size_t          size = 0;
++
++        if (dataPtr.get()) {
++
++            heap = dataPtr->getMemory(&offset, &size);
++            if  ( NULL != heap.get() && NULL != heap->base() )
++                ::memcpy(&dataHeader, ((uint8_t*)heap->base()) + offset, sizeof(DataHeader));
++
++            if (dataHeader.extMsgType == 0x10) { //MTK_CAMERA_MSG_EXT_DATA_COMPRESSED_IMAGE
++                msgType = CAMERA_MSG_COMPRESSED_IMAGE;
++                sp<MemoryBase> image = new MemoryBase(heap,
++                        (offset + sizeof(DataHeader) + sizeof(uint_t) * 1),
++                        (size - sizeof(DataHeader) - sizeof(uint_t) * 1));
++                client->handleCompressedPicture(image);
++                return;
++            }
++        }
++        LOG2("MtkDataCallback(0x%x)", dataHeader.extMsgType);
++    }
++#endif
+ 
+     switch (msgType & ~CAMERA_MSG_PREVIEW_METADATA) {
+         case CAMERA_MSG_PREVIEW_FRAME:
+
+
+
+From 796b491ae533e19c12a7434b52057af2ea6f6bc6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Sun, 3 Sep 2017 23:16:35 +0300
+Subject: [PATCH] Fix for camera using API1
+
+---
+ services/camera/libcameraservice/api1/CameraClient.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/services/camera/libcameraservice/api1/CameraClient.cpp b/services/camera/libcameraservice/api1/CameraClient.cpp
+index 366281906..a473b724d 100644
+--- a/services/camera/libcameraservice/api1/CameraClient.cpp
++++ b/services/camera/libcameraservice/api1/CameraClient.cpp
+@@ -838,9 +838,9 @@ void CameraClient::dataCallback(int32_t msgType,
+         return;
+     }
+ #ifdef MTK_HARDWARE
+-    if (msgType == 0x80000000) { //MTK_CAMERA_MSG_EXT_DATA
++    if (int32_t msgType = 0x80000000) { //MTK_CAMERA_MSG_EXT_DATA
+         struct DataHeader {
+-            int        extMsgType;
++            uint32_t        extMsgType;
+         } dataHeader;
+         sp<IMemoryHeap> heap = 0;
+         ssize_t         offset = 0;
+		 
+		 
+		 
+From 34de18f80a913e6d001086f7b6a1ece3200452be Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Tue, 5 Sep 2017 02:30:52 +0300
+Subject: [PATCH] Improvements for libstagefright.so
+
+---
+ media/libstagefright/foundation/MediaBufferGroup.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/media/libstagefright/foundation/MediaBufferGroup.cpp b/media/libstagefright/foundation/MediaBufferGroup.cpp
+index 8e4d0641c..9fdeccbdd 100644
+--- a/media/libstagefright/foundation/MediaBufferGroup.cpp
++++ b/media/libstagefright/foundation/MediaBufferGroup.cpp
+@@ -138,6 +138,12 @@ bool MediaBufferGroup::has_buffers() {
+     return false;
+ }
+ 
++extern "C" status_t _ZN7android16MediaBufferGroupC1Ev(
++                    MediaBufferGroup* group, MediaBuffer **out, bool nonBlocking) {
++    ALOGD("_ZN7android16MediaBufferGroupC1Ev");
++    return group->acquire_buffer(out, nonBlocking, 0);
++}
++
+ status_t MediaBufferGroup::acquire_buffer(
+         MediaBuffer **out, bool nonBlocking, size_t requestedSize) {
+     Mutex::Autolock autoLock(mLock);
+	 
+	 
+	 
+From 68f62645e4681e967176dc85462ef4a4bdf3b819 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Sat, 9 Sep 2017 22:34:10 +0300
+Subject: [PATCH] Enforce HW for Camera on MediaTek
+
+---
+ media/libmediaplayerservice/StagefrightRecorder.cpp |  8 ++++++++
+ media/libstagefright/MediaCodecList.cpp             | 11 +++++++++++
+ media/libstagefright/MediaCodecSource.cpp           |  6 ++++++
+ 3 files changed, 25 insertions(+)
+
+diff --git a/media/libmediaplayerservice/StagefrightRecorder.cpp b/media/libmediaplayerservice/StagefrightRecorder.cpp
+index a6558ab3d..13526770f 100644
+--- a/media/libmediaplayerservice/StagefrightRecorder.cpp
++++ b/media/libmediaplayerservice/StagefrightRecorder.cpp
+@@ -1566,6 +1566,14 @@ status_t StagefrightRecorder::setupVideoEncoder(
+             break;
+     }
+ 
++    // force hw video encoder for camera
++    if (mVideoSource == VIDEO_SOURCE_CAMERA) {
++        AString mime;
++        CHECK(format->findString("mime", &mime));
++        mime.append("_cam");
++        format->setString("mime", mime);
++    }
++
+     if (cameraSource != NULL) {
+         sp<MetaData> meta = cameraSource->getFormat();
+ 
+diff --git a/media/libstagefright/MediaCodecList.cpp b/media/libstagefright/MediaCodecList.cpp
+index fe7dd6290..3225bede9 100644
+--- a/media/libstagefright/MediaCodecList.cpp
++++ b/media/libstagefright/MediaCodecList.cpp
+@@ -1180,6 +1180,17 @@ void MediaCodecList::findMatchingCodecs(
+         return;
+     }
+ 
++    AString *tempMime = new AString(mime);
++    if (tempMime->endsWith("_cam")) {
++        // remove camera tag from mime
++        tempMime->erase(tempMime->size() - 4, 4);
++        mime = tempMime->c_str();
++    }
++    else {
++        // no camera recording, prefer software codecs
++        flags |= kPreferSoftwareCodecs;
++    }
++
+     size_t index = 0;
+     for (;;) {
+         ssize_t matchIndex =
+diff --git a/media/libstagefright/MediaCodecSource.cpp b/media/libstagefright/MediaCodecSource.cpp
+index 9f65c2bb4..35db4a507 100755
+--- a/media/libstagefright/MediaCodecSource.cpp
++++ b/media/libstagefright/MediaCodecSource.cpp
+@@ -484,6 +484,12 @@ status_t MediaCodecSource::initEncoder() {
+                 &matchingCodecs);
+     }
+ 
++    // remove camera tag from mime
++    if (outputMIME.endsWith("_cam")) {
++        outputMIME.erase(outputMIME.size() - 4, 4);
++        mOutputFormat->setString("mime", outputMIME);
++    }
++
+     status_t err = NO_INIT;
+     for (size_t ix = 0; ix < matchingCodecs.size(); ++ix) {
+         mEncoder = MediaCodec::CreateByComponentName(
+		 
+		 
+		 
+From a973ac6e427aa775dbf9824bf2f11b14890aeebe Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Sat, 9 Sep 2017 22:43:12 +0300
+Subject: [PATCH]Fix the microphone on MediaTek
+
+---
+ services/audioflinger/Android.mk  | 4 ++++
+ services/audioflinger/Threads.cpp | 4 ++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/services/audioflinger/Android.mk b/services/audioflinger/Android.mk
+index 886421516..1d09376ec 100644
+--- a/services/audioflinger/Android.mk
++++ b/services/audioflinger/Android.mk
+@@ -87,6 +87,10 @@ endif
+ endif
+ #QTI Resampler
+ 
++ifeq ($(BOARD_HAS_MTK_HARDWARE),true)
++LOCAL_CFLAGS += -DLEGACY_AUDIO_BLOB
++endif
++
+ LOCAL_MODULE:= libaudioflinger
+ 
+ LOCAL_SRC_FILES += \
+diff --git a/services/audioflinger/Threads.cpp b/services/audioflinger/Threads.cpp
+index facfc860c..3ef5be194 100644
+--- a/services/audioflinger/Threads.cpp
++++ b/services/audioflinger/Threads.cpp
+@@ -6467,7 +6467,7 @@ bool AudioFlinger::RecordThread::threadLoop()
+         // systemTime() is optional if the hardware supports timestamps.
+         mTimestamp.mPosition[ExtendedTimestamp::LOCATION_SERVER] += framesRead;
+         mTimestamp.mTimeNs[ExtendedTimestamp::LOCATION_SERVER] = systemTime();
+-
++#ifndef LEGACY_AUDIO_BLOB
+         // Update server timestamp with kernel stats
+         if (mInput->stream->get_capture_position != nullptr
+                 && mPipeSource.get() == nullptr /* don't obtain for FastCapture, could block */) {
+@@ -6485,7 +6485,7 @@ bool AudioFlinger::RecordThread::threadLoop()
+         }
+         // Use this to track timestamp information
+         // ALOGD("%s", mTimestamp.toString().c_str());
+-
++#endif
+         if (framesRead < 0 || (framesRead == 0 && mPipeSource == 0)) {
+             ALOGE("read failed: framesRead=%zd", framesRead);
+             // Force input into standby so that it tries to recover at next read attempt
+			 
+			 
+			 
+From 5aa831f6d46ba52e750b428f51e0796672040096 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Wed, 13 Sep 2017 01:09:01 +0300
+Subject: [PATCH] Graphics issue fix for MediaTek (1/2)
+
+This reverts commit 5fffd1a03cf914684cc7dadbf165b2d2b9b8255a.
+---
+ media/libstagefright/MediaSource.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/media/libstagefright/MediaSource.cpp b/media/libstagefright/MediaSource.cpp
+index a17757a8e..749d01c10 100644
+--- a/media/libstagefright/MediaSource.cpp
++++ b/media/libstagefright/MediaSource.cpp
+@@ -23,3 +23,14 @@ MediaSource::MediaSource() {}
+ MediaSource::~MediaSource() {}
+ 
+ }  // namespace android
++
++extern "C" {
++
++bool _ZNK7android11MediaSource11ReadOptions9getSeekToEPxPNS1_8SeekModeE(android::IMediaSource::ReadOptions *readOptions, int64_t *time_us, android::IMediaSource::ReadOptions::SeekMode *mode) {
++    ALOGW("_ZNK7android11MediaSource11ReadOptions9getSeekToEPxPNS1_8SeekModeE");
++    bool res = readOptions->getSeekTo(time_us, mode);
++    ALOGW("_ZNK7android11MediaSource11ReadOptions9getSeekToEPxPNS1_8SeekModeE %lld, %d, %d", *time_us, *mode, res);
++    return res;
++}
++
++}
+
+
+
+From 992dd0202638754e679e39987bfbc94cceee5201 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Wed, 13 Sep 2017 01:09:03 +0300
+Subject: [PATCH] Graphics issue fix for MediaTek (2/2)
+
+This reverts commit 6f15d154e3e1bdc616c2a8eb08fca0968b045f3a.
+---
+ media/libstagefright/foundation/MediaBufferGroup.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/media/libstagefright/foundation/MediaBufferGroup.cpp b/media/libstagefright/foundation/MediaBufferGroup.cpp
+index 9fdeccbdd..0c8110587 100644
+--- a/media/libstagefright/foundation/MediaBufferGroup.cpp
++++ b/media/libstagefright/foundation/MediaBufferGroup.cpp
+@@ -144,6 +144,12 @@ extern "C" status_t _ZN7android16MediaBufferGroupC1Ev(
+     return group->acquire_buffer(out, nonBlocking, 0);
+ }
+ 
++extern "C" status_t _ZN7android16MediaBufferGroup14acquire_bufferEPPNS_11MediaBufferE(
++                    MediaBufferGroup* group, MediaBuffer **out, bool nonBlocking) {
++    ALOGD("_ZN7android16MediaBufferGroup14acquire_bufferEPPNS_11MediaBufferE");
++    return group->acquire_buffer(out, nonBlocking, 0);
++}
++
+ status_t MediaBufferGroup::acquire_buffer(
+         MediaBuffer **out, bool nonBlocking, size_t requestedSize) {
+     Mutex::Autolock autoLock(mLock);
+	 
+	 
+	 
+From e7629a5da70737d8463a4ec9854a22b61b1e8980 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Tue, 12 Sep 2017 16:17:53 +0200
+Subject: [PATCH] Use SoftVideoDecoder blobs for MediaTek
+
+---
+ .../include/SoftVideoDecoderOMXComponent.h         |  3 ++
+ .../omx/SoftVideoDecoderOMXComponent.cpp           | 32 ++++++++++++++++++++--
+ 2 files changed, 33 insertions(+), 2 deletions(-)
+
+diff --git a/media/libstagefright/include/SoftVideoDecoderOMXComponent.h b/media/libstagefright/include/SoftVideoDecoderOMXComponent.h
+index c9fd74542..1ce2a8454 100644
+--- a/media/libstagefright/include/SoftVideoDecoderOMXComponent.h
++++ b/media/libstagefright/include/SoftVideoDecoderOMXComponent.h
+@@ -97,6 +97,9 @@ struct SoftVideoDecoderOMXComponent : public SimpleSoftOMXComponent {
+             const char *mimeType,
+             OMX_U32 minCompressionRatio = 1u);
+ 
++	// For MTK blob compatibility
++    virtual void updatePortDefinitions(bool updateCrop = true);
++			
+     virtual void updatePortDefinitions(bool updateCrop = true, bool updateInputSize = false);
+ 
+     uint32_t outputBufferWidth();
+diff --git a/media/libstagefright/omx/SoftVideoDecoderOMXComponent.cpp b/media/libstagefright/omx/SoftVideoDecoderOMXComponent.cpp
+index 409cef7ca..2d535886c 100644
+--- a/media/libstagefright/omx/SoftVideoDecoderOMXComponent.cpp
++++ b/media/libstagefright/omx/SoftVideoDecoderOMXComponent.cpp
+@@ -147,6 +147,34 @@ void SoftVideoDecoderOMXComponent::initPorts(
+     updatePortDefinitions(true /* updateCrop */, true /* updateInputSize */);
+ }
+ 
++// For MTK blob compatibility
++void SoftVideoDecoderOMXComponent::updatePortDefinitions(bool updateCrop) {
++    OMX_PARAM_PORTDEFINITIONTYPE *def = &editPortInfo(kInputPortIndex)->mDef;
++    def->format.video.nFrameWidth = mWidth;
++    def->format.video.nFrameHeight = mHeight;
++    def->format.video.nStride = def->format.video.nFrameWidth;
++    def->format.video.nSliceHeight = def->format.video.nFrameHeight;
++
++    def->nBufferSize = def->format.video.nFrameWidth * def->format.video.nFrameHeight * 3 / 2;
++
++    def = &editPortInfo(kOutputPortIndex)->mDef;
++    def->format.video.nFrameWidth = outputBufferWidth();
++    def->format.video.nFrameHeight = outputBufferHeight();
++    def->format.video.nStride = def->format.video.nFrameWidth;
++    def->format.video.nSliceHeight = def->format.video.nFrameHeight;
++
++    def->nBufferSize =
++            (def->format.video.nFrameWidth *
++             def->format.video.nFrameHeight * 3) / 2;
++
++    if (updateCrop) {
++        mCropLeft = 0;
++        mCropTop = 0;
++        mCropWidth = mWidth;
++        mCropHeight = mHeight;
++    }
++}
++
+ void SoftVideoDecoderOMXComponent::updatePortDefinitions(bool updateCrop, bool updateInputSize) {
+     OMX_PARAM_PORTDEFINITIONTYPE *outDef = &editPortInfo(kOutputPortIndex)->mDef;
+     outDef->format.video.nFrameWidth = outputBufferWidth();
+@@ -219,12 +247,12 @@ void SoftVideoDecoderOMXComponent::handlePortSettingsChange(
+                     mAdaptiveMaxHeight = height;
+                 }
+             }
+-            updatePortDefinitions(updateCrop);
++            updatePortDefinitions(updateCrop, false);
+             notify(OMX_EventPortSettingsChanged, kOutputPortIndex, 0, NULL);
+             mOutputPortSettingsChange = AWAITING_DISABLED;
+             *portWillReset = true;
+         } else {
+-            updatePortDefinitions(updateCrop);
++            updatePortDefinitions(updateCrop, false);
+ 
+             if (fakeStride) {
+                 // MAJOR HACK that is not pretty, it's just to fool the renderer to read the correct
+
+
+From 2dc5c9ed39ea241ea2a3baa319f6290135f477b7 Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Sat, 30 Jul 2016 01:54:21 +0200
+Subject: [PATCH] Add mtk FMRadio support
+
+Change-Id: I2da5139d71f4afe5a4c3f0f9b43cb44d516fbd18
+---
+ include/media/MediaPlayerInterface.h               |   3 +
+ media/libmediaplayerservice/Android.mk             |   5 +
+ media/libmediaplayerservice/FMAudioPlayer.h        | 144 +++++++++++++++++++++
+ media/libmediaplayerservice/MediaPlayerFactory.cpp |  25 ++++
+ 4 files changed, 177 insertions(+)
+ create mode 100644 media/libmediaplayerservice/FMAudioPlayer.h
+
+diff --git a/include/media/MediaPlayerInterface.h b/include/media/MediaPlayerInterface.h
+index 2ef68cd84..086c37f4d 100644
+--- a/include/media/MediaPlayerInterface.h
++++ b/include/media/MediaPlayerInterface.h
+@@ -53,6 +53,9 @@ enum player_type {
+     // argument to the 'test:' url in the setDataSource call.
+     TEST_PLAYER = 5,
+     DASH_PLAYER = 6,
++#ifdef MTK_HARDWARE
++    FM_AUDIO_PLAYER = 7,
++#endif
+ };
+ 
+ 
+diff --git a/media/libmediaplayerservice/Android.mk b/media/libmediaplayerservice/Android.mk
+index d556ec9eb..b9347a624 100644
+--- a/media/libmediaplayerservice/Android.mk
++++ b/media/libmediaplayerservice/Android.mk
+@@ -73,6 +73,11 @@ LOCAL_C_INCLUDES :=                                                 \
+     $(TOP)/frameworks/av/media/libavextensions                      \
+     $(TOP)/frameworks/av/media/libstagefright/mpeg2ts               \
+ 
++# Mediatek
++ifeq ($(strip $(BOARD_HAS_MTK_HARDWARE)),true)
++LOCAL_SHARED_LIBRARIES += libmtkplayer
++endif
++
+ LOCAL_CFLAGS += -Werror -Wno-error=deprecated-declarations -Wall
+ # DOLBY_START
+ ifeq ($(strip $(DOLBY_ENABLE)),true)
+diff --git a/media/libmediaplayerservice/FMAudioPlayer.h b/media/libmediaplayerservice/FMAudioPlayer.h
+new file mode 100644
+index 000000000..0f239d452
+--- /dev/null
++++ b/media/libmediaplayerservice/FMAudioPlayer.h
+@@ -0,0 +1,144 @@
++/* Copyright Statement:
++ *
++ * This software/firmware and related documentation ("MediaTek Software") are
++ * protected under relevant copyright laws. The information contained herein
++ * is confidential and proprietary to MediaTek Inc. and/or its licensors.
++ * Without the prior written permission of MediaTek inc. and/or its licensors,
++ * any reproduction, modification, use or disclosure of MediaTek Software,
++ * and information contained herein, in whole or in part, shall be strictly prohibited.
++ */
++/* MediaTek Inc. (C) 2010. All rights reserved.
++ *
++ * BY OPENING THIS FILE, RECEIVER HEREBY UNEQUIVOCALLY ACKNOWLEDGES AND AGREES
++ * THAT THE SOFTWARE/FIRMWARE AND ITS DOCUMENTATIONS ("MEDIATEK SOFTWARE")
++ * RECEIVED FROM MEDIATEK AND/OR ITS REPRESENTATIVES ARE PROVIDED TO RECEIVER ON
++ * AN "AS-IS" BASIS ONLY. MEDIATEK EXPRESSLY DISCLAIMS ANY AND ALL WARRANTIES,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NONINFRINGEMENT.
++ * NEITHER DOES MEDIATEK PROVIDE ANY WARRANTY WHATSOEVER WITH RESPECT TO THE
++ * SOFTWARE OF ANY THIRD PARTY WHICH MAY BE USED BY, INCORPORATED IN, OR
++ * SUPPLIED WITH THE MEDIATEK SOFTWARE, AND RECEIVER AGREES TO LOOK ONLY TO SUCH
++ * THIRD PARTY FOR ANY WARRANTY CLAIM RELATING THERETO. RECEIVER EXPRESSLY ACKNOWLEDGES
++ * THAT IT IS RECEIVER'S SOLE RESPONSIBILITY TO OBTAIN FROM ANY THIRD PARTY ALL PROPER LICENSES
++ * CONTAINED IN MEDIATEK SOFTWARE. MEDIATEK SHALL ALSO NOT BE RESPONSIBLE FOR ANY MEDIATEK
++ * SOFTWARE RELEASES MADE TO RECEIVER'S SPECIFICATION OR TO CONFORM TO A PARTICULAR
++ * STANDARD OR OPEN FORUM. RECEIVER'S SOLE AND EXCLUSIVE REMEDY AND MEDIATEK'S ENTIRE AND
++ * CUMULATIVE LIABILITY WITH RESPECT TO THE MEDIATEK SOFTWARE RELEASED HEREUNDER WILL BE,
++ * AT MEDIATEK'S OPTION, TO REVISE OR REPLACE THE MEDIATEK SOFTWARE AT ISSUE,
++ * OR REFUND ANY SOFTWARE LICENSE FEES OR SERVICE CHARGE PAID BY RECEIVER TO
++ * MEDIATEK FOR SUCH MEDIATEK SOFTWARE AT ISSUE.
++ *
++ * The following software/firmware and/or related documentation ("MediaTek Software")
++ * have been modified by MediaTek Inc. All revisions are subject to any receiver's
++ * applicable license agreements with MediaTek Inc.
++ */
++
++#ifndef ANDROID_FM_AUDIOPLAYER_H
++#define ANDROID_FM_AUDIOPLAYER_H
++
++
++#include <utils/threads.h>
++
++#include <media/MediaPlayerInterface.h>
++#include <media/AudioTrack.h>
++#include <media/AudioRecord.h>
++
++namespace android
++{
++
++class FMAudioPlayer : public MediaPlayerInterface
++{
++public:
++    FMAudioPlayer();
++    ~FMAudioPlayer();
++
++    virtual void        onFirstRef();
++    virtual status_t    initCheck();
++    //virtual status_t    setDataSource(const char *path, const KeyedVector<String8, String8> *headers);
++    virtual status_t    setDataSource(const sp<IMediaHTTPService> &httpService, const char *url, const KeyedVector<String8, String8> *headers);
++    virtual status_t    setDataSource(int fd, int64_t offset, int64_t length);
++    virtual status_t    setVideoSurface(const sp<Surface>& /*surface*/)
++    {
++        return UNKNOWN_ERROR;
++    }
++    virtual status_t    setVideoSurfaceTexture(
++        const sp<IGraphicBufferProducer>& /*bufferProducer*/)
++    {
++        return UNKNOWN_ERROR;
++    }
++    virtual status_t    prepare();
++    virtual status_t    prepareAsync();
++    virtual status_t    start();
++    virtual status_t    stop();
++    virtual status_t    seekTo(int msec);
++    virtual status_t    pause();
++    virtual bool        isPlaying();
++    virtual status_t    getCurrentPosition(int *msec);
++    virtual status_t    getDuration(int *msec);
++    virtual status_t    release();
++    virtual status_t    reset();
++    virtual status_t    setLooping(int loop);
++#ifndef FAKE_FM
++    virtual status_t    setRender(bool enable);
++#endif
++    virtual player_type playerType()
++    {
++        return FM_AUDIO_PLAYER;
++    }
++    virtual status_t    invoke(const Parcel &/*request*/, Parcel */*reply*/)
++    {
++        return INVALID_OPERATION;
++    }
++    virtual status_t    setParameter(int /*key*/, const Parcel &/*request*/)
++    {
++        return INVALID_OPERATION;
++    }
++    virtual status_t    getParameter(int /*key*/, Parcel */*reply*/)
++    {
++        return INVALID_OPERATION;
++    }
++
++private:
++    status_t    setdatasource(const char *path, int fd, int64_t offset, int64_t length);
++    status_t    reset_nosync();
++    status_t    createOutputTrack();
++    static int  renderThread(void *);
++    int         render();
++    bool        createAudioRecord();
++    bool        deleteAudioRecord();
++
++#ifndef FAKE_FM
++    void        setHwCallback(bool enable);
++#endif
++
++    sp<AudioRecord>      mAudioRecord;
++    Mutex               mMutex;
++    Condition           mCondition;
++    FILE               *mFile;
++    int64_t             mOffset;
++    int64_t             mLength;
++    char               *mAudioBuffer;
++    char               *mDummyBuffer;
++    int                 mPlayTime;
++    int                 mDuration;
++    uint32_t            mFmAudioSamplingRate;
++
++    status_t            mState;
++    int                 mStreamType;
++    bool                mAndroidLoop;
++    volatile bool       mExit;
++    bool                mPaused;
++		
++    bool		mSetRender;
++    volatile bool       mRender;
++    pid_t               mRenderTid;
++    bool 		flagRecordError;
++
++    int mMutePause;
++};
++
++}; // namespace android
++
++#endif
++
++
+diff --git a/media/libmediaplayerservice/MediaPlayerFactory.cpp b/media/libmediaplayerservice/MediaPlayerFactory.cpp
+index 864dce259..7c1acac93 100644
+--- a/media/libmediaplayerservice/MediaPlayerFactory.cpp
++++ b/media/libmediaplayerservice/MediaPlayerFactory.cpp
+@@ -34,6 +34,10 @@
+ #include "nuplayer/NuPlayerDriver.h"
+ #include <mediaplayerservice/AVMediaServiceExtensions.h>
+ 
++#ifdef MTK_HARDWARE
++#include "FMAudioPlayer.h"
++#endif
++
+ namespace android {
+ 
+ Mutex MediaPlayerFactory::sLock;
+@@ -241,6 +245,24 @@ class TestPlayerFactory : public MediaPlayerFactory::IFactory {
+     }
+ };
+ 
++#ifdef MTK_HARDWARE
++class FMPlayerFactory : public MediaPlayerFactory::IFactory {
++  public:
++    virtual float scoreFactory(const sp<IMediaPlayer>& /*client*/,
++                               const char* url,
++                               float /*curScore*/) {
++        if(strncmp(url, "MEDIATEK://MEDIAPLAYER_PLAYERTYPE_FM", 36) == 0)
++           return 1.0;
++        return 0.0;
++    }
++
++    virtual sp<MediaPlayerBase> createPlayer(pid_t /* pid */) {
++        ALOGV("Create FM Player");
++        return new FMAudioPlayer();
++    }
++};
++#endif
++
+ void MediaPlayerFactory::registerBuiltinFactories() {
+ 
+     MediaPlayerFactory::IFactory* pCustomFactory = NULL;
+@@ -256,6 +278,9 @@ void MediaPlayerFactory::registerBuiltinFactories() {
+         ALOGV("Registering DASH_PLAYER");
+         registerFactory_l(pCustomFactory, DASH_PLAYER);
+     }
++#ifdef MTK_HARDWARE
++    registerFactory_l(new FMPlayerFactory(), FM_AUDIO_PLAYER);
++#endif
+ 
+     sInitComplete = true;
+ }
+
+From bc23b26453ab38a430fc6d4580a7277e8f37dd3a Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Fri, 22 Apr 2016 22:52:01 +0200
+Subject: [PATCH] Fix FM volume control
+
+Change-Id: Ie56820e540e738f0fcd14276dcda89f199166d65
+---
+ services/audioflinger/AudioFlinger.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/services/audioflinger/AudioFlinger.cpp b/services/audioflinger/AudioFlinger.cpp
+index 9244e5b10..b4f830de7 100644
+--- a/services/audioflinger/AudioFlinger.cpp
++++ b/services/audioflinger/AudioFlinger.cpp
+@@ -1049,6 +1049,18 @@ status_t AudioFlinger::setStreamVolume(audio_stream_type_t stream, float value,
+         thread->setStreamVolume(stream, value);
+     }
+ 
++#ifdef MTK_HARDWARE
++    // MTK FM Volume
++    if(stream == AUDIO_STREAM_MUSIC) {
++        sp<ThreadBase> thread;
++        thread = checkPlaybackThread_l(output);
++        if (thread == primaryPlaybackThread_l()) {
++            audio_hw_device_t *dev = mPrimaryHardwareDev->hwDevice();
++            dev->set_parameters (dev, String8::format("SetFmVolume=%f", value));
++        }
++    }
++#endif
++
+     return NO_ERROR;
+ }
+
+From bd4a8e60c7ce56bc34b9aacaaf20092abe3a0da5 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Tue, 24 Oct 2017 11:58:41 +0000
+Subject: [PATCH] Fix video streaming
+
+Don't store metadata in buffers. We don't support that at all.
+---
+ media/libstagefright/ACodec.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/media/libstagefright/ACodec.cpp b/media/libstagefright/ACodec.cpp
+index 92e2847e6..c93fac735 100644
+--- a/media/libstagefright/ACodec.cpp
++++ b/media/libstagefright/ACodec.cpp
+@@ -821,11 +821,15 @@ status_t ACodec::allocateBuffersOnPort(OMX_U32 portIndex) {
+ 
+     status_t err;
+     if (mNativeWindow != NULL && portIndex == kPortIndexOutput) {
++#ifdef MTK_HARDWARE
++	err = allocateOutputBuffersFromNativeWindow();
++#else
+         if (storingMetadataInDecodedBuffers()) {
+             err = allocateOutputMetadataBuffers();
+         } else {
+             err = allocateOutputBuffersFromNativeWindow();
+         }
++#endif
+     } else {
+         OMX_PARAM_PORTDEFINITIONTYPE def;
+         InitOMXParams(&def); 

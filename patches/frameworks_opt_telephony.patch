@@ -1,0 +1,388 @@
+From 428161b6c3ab2bd482b729a24a473445edee61ce Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Tue, 5 Sep 2017 02:12:47 +0300
+Subject: [PATCH] Improving fakeiccid for legacy rils
+
+---
+ .../android/internal/telephony/SubscriptionInfoUpdater.java    |  2 +-
+ src/java/com/android/internal/telephony/uicc/IccConstants.java |  3 +++
+ src/java/com/android/internal/telephony/uicc/RuimRecords.java  | 10 ++++++----
+ src/java/com/android/internal/telephony/uicc/SIMRecords.java   | 10 ++++++----
+ 4 files changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java b/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
+index 233ee65c1..50a03b7bf 100644
+--- a/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
++++ b/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
+@@ -324,7 +324,7 @@ public void handleMessage(Message msg) {
+                         mIccId[slotId] = ICCID_STRING_FOR_NO_SIM;
+                     }
+                 } else {
+-                    mIccId[slotId] = ICCID_STRING_FOR_NO_SIM;
++                    mIccId[slotId] = IccConstants.FAKE_ICCID;
+                     logd("Query IccId fail: " + ar.exception);
+                 }
+                 logd("sIccId[" + slotId + "] = " + mIccId[slotId]);
+diff --git a/src/java/com/android/internal/telephony/uicc/IccConstants.java b/src/java/com/android/internal/telephony/uicc/IccConstants.java
+index 01c3570dc..fb5c2c1fb 100644
+--- a/src/java/com/android/internal/telephony/uicc/IccConstants.java
++++ b/src/java/com/android/internal/telephony/uicc/IccConstants.java
+@@ -122,4 +122,7 @@
+ 
+     //UICC access
+     static final String DF_ADF = "7FFF";
++
++    //CM-Specific : Fake ICCID
++    static final String FAKE_ICCID = "00000000000001";
+ }
+diff --git a/src/java/com/android/internal/telephony/uicc/RuimRecords.java b/src/java/com/android/internal/telephony/uicc/RuimRecords.java
+index af7d5bcc8..af1a3fd7d 100644
+--- a/src/java/com/android/internal/telephony/uicc/RuimRecords.java
++++ b/src/java/com/android/internal/telephony/uicc/RuimRecords.java
+@@ -684,11 +684,13 @@ public void handleMessage(Message msg) {
+                 data = (byte[])ar.result;
+ 
+                 if (ar.exception != null) {
+-                    break;
++                    mIccId = FAKE_ICCID;
++                    mFullIccId = FAKE_ICCID;
++                }
++                else {
++	                mIccId = IccUtils.bcdToString(data, 0, data.length);
++                        mFullIccId = IccUtils.bchToString(data, 0, data.length);
+                 }
+-
+-                mIccId = IccUtils.bcdToString(data, 0, data.length);
+-                mFullIccId = IccUtils.bchToString(data, 0, data.length);
+ 
+                 log("iccid: " + SubscriptionInfo.givePrintableIccid(mFullIccId));
+ 
+diff --git a/src/java/com/android/internal/telephony/uicc/SIMRecords.java b/src/java/com/android/internal/telephony/uicc/SIMRecords.java
+index ccae4b33a..b1a8cbd85 100644
+--- a/src/java/com/android/internal/telephony/uicc/SIMRecords.java
++++ b/src/java/com/android/internal/telephony/uicc/SIMRecords.java
+@@ -900,11 +900,13 @@ public void handleMessage(Message msg) {
+                 data = (byte[])ar.result;
+ 
+                 if (ar.exception != null) {
+-                    break;
++                    mIccId = FAKE_ICCID;
++                    mFullIccId = FAKE_ICCID;
++                }
++                else {
++                    mIccId = IccUtils.bcdToString(data, 0, data.length);
++                    mFullIccId = IccUtils.bchToString(data, 0, data.length);
+                 }
+-
+-                mIccId = IccUtils.bcdToString(data, 0, data.length);
+-                mFullIccId = IccUtils.bchToString(data, 0, data.length);
+ 
+                 log("iccid: " + SubscriptionInfo.givePrintableIccid(mFullIccId));
+ 
+
+ 
+ From 8ef46d678868c9ce2828d6e23df41f4e498ec0f1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Tue, 5 Sep 2017 02:16:30 +0300
+Subject: [PATCH] 2G/3G switch
+
+---
+ src/java/com/android/internal/telephony/Phone.java | 41 ++++++++++++++--------
+ 1 file changed, 26 insertions(+), 15 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/Phone.java b/src/java/com/android/internal/telephony/Phone.java
+index 7f0b1b804..00205e9a4 100644
+--- a/src/java/com/android/internal/telephony/Phone.java
++++ b/src/java/com/android/internal/telephony/Phone.java
+@@ -1854,22 +1854,33 @@ public void setPreferredNetworkType(int networkType, Message response) {
+         int modemRaf = getRadioAccessFamily();
+         int rafFromType = RadioAccessFamily.getRafFromNetworkType(networkType);
+ 
+-        if (modemRaf == RadioAccessFamily.RAF_UNKNOWN
+-                || rafFromType == RadioAccessFamily.RAF_UNKNOWN) {
+-            Rlog.d(LOG_TAG, "setPreferredNetworkType: Abort, unknown RAF: "
+-                    + modemRaf + " " + rafFromType);
+-            if (response != null) {
+-                CommandException ex;
+-
+-                ex = new CommandException(CommandException.Error.GENERIC_FAILURE);
+-                AsyncResult.forMessage(response, null, ex);
+-                response.sendToTarget();
+-            }
+-            return;
+-        }
++        int filteredType = 0;
+ 
+-        int filteredRaf = (rafFromType & modemRaf);
+-        int filteredType = RadioAccessFamily.getNetworkTypeFromRaf(filteredRaf);
++        switch (rafFromType) {
++        case 101902:
++                filteredType = RILConstants.NETWORK_MODE_WCDMA_PREF;
++                break;
++        case 65542:
++                filteredType = RILConstants.NETWORK_MODE_GSM_ONLY;
++                break;
++        case 36360:
++                filteredType = RILConstants.NETWORK_MODE_WCDMA_ONLY;
++                break;
++        default:
++                if ((modemRaf == RadioAccessFamily.RAF_UNKNOWN
++                        || rafFromType == RadioAccessFamily.RAF_UNKNOWN)) {
++                        Rlog.d(LOG_TAG, "setPreferredNetworkType: Abort, unknown RAF: " +
++                         modemRaf + " " + rafFromType);
++                        if (response != null) {
++                            CommandException ex;
++
++                                ex = new CommandException(CommandException.Error.GENERIC_FAILURE);
++                                AsyncResult.forMessage(response, null, ex);
++                                response.sendToTarget();
++                        }
++                        return;
++                }
++        }
+ 
+         Rlog.d(LOG_TAG, "setPreferredNetworkType: networkType = " + networkType
+                 + " modemRaf = " + modemRaf
+				 
+				 
+				 
+From 51d3517878eb9434b9d74e87e5f4fc905ff86c81 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Tue, 5 Sep 2017 02:19:19 +0300
+Subject: [PATCH] Correctly display the carrier name
+
+---
+ .../android/internal/telephony/SubscriptionController.java   | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/java/com/android/internal/telephony/SubscriptionController.java b/src/java/com/android/internal/telephony/SubscriptionController.java
+index e1824512f..d412213ff 100644
+--- a/src/java/com/android/internal/telephony/SubscriptionController.java
++++ b/src/java/com/android/internal/telephony/SubscriptionController.java
+@@ -263,6 +263,13 @@ public void notifySubscriptionInfoChanged() {
+          broadcastSimInfoContentChanged();
+      }
+ 
++     private boolean isNumeric(String str) {
++         for (char c : str.toCharArray()) {
++             if (!Character.isDigit(c)) return false;
++         }
++         return true;
++     }
++
+     /**
+      * New SubInfoRecord instance and fill in detail info
+      * @param cursor
+@@ -306,6 +313,11 @@ private SubscriptionInfo getSubInfoRecord(Cursor cursor) {
+                     + " userNwMode:" + userNwMode);
+         }
+ 
++        if (isNumeric(carrierName)) {
++            carrierName = displayName;
++            logd("[getSubInfoRecord] carrierName changed to: " + displayName);
++        }
++
+         // If line1number has been set to a different number, use it instead.
+         String line1Number = mTelephonyManager.getLine1Number(id);
+         if (!TextUtils.isEmpty(line1Number) && !line1Number.equals(number)) {
+		 
+		 
+		 
+From 8bde1873aa3a4f6ad09baea978525785b559badf Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Thu, 7 Sep 2017 13:00:06 +0300
+Subject: [PATCH] Add the USSD support
+
+---
+ src/java/com/android/internal/telephony/GsmCdmaPhone.java | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/src/java/com/android/internal/telephony/GsmCdmaPhone.java b/src/java/com/android/internal/telephony/GsmCdmaPhone.java
+index 928593cdb..88c7aea0f 100644
+--- a/src/java/com/android/internal/telephony/GsmCdmaPhone.java
++++ b/src/java/com/android/internal/telephony/GsmCdmaPhone.java
+@@ -1465,6 +1465,7 @@ public String getEsn() {
+         }
+     }
+ 
++
+     @Override
+     public String getMeid() {
+         if (isPhoneTypeGsm()) {
+@@ -1998,7 +1999,12 @@ private void onIncomingUSSD (int ussdMode, String ussdMessage) {
+             // Complete pending USSD
+ 
+             if (isUssdRelease) {
+-                found.onUssdRelease();
++                // MTK weirdness
++                if(ussdMessage != null) {
++                    found.onUssdFinished(ussdMessage, isUssdRequest);
++                } else {
++                    found.onUssdRelease();
++                }
+             } else if (isUssdError) {
+                 found.onUssdFinishedError();
+             } else {
+@@ -2751,6 +2757,7 @@ public boolean isManualNetSelAllowed() {
+ 
+     private boolean isManualSelProhibitedInGlobalMode() {
+         boolean isProhibited = false;
++
+         final String configString = getContext().getResources().getString(com.android.internal.
+                 R.string.prohibit_manual_network_selection_in_gobal_mode);
+ 
+ 
+ 
+ From a0fd6118d65b5dd5f64fec8028f4ce74a8f01ed7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Sat, 9 Sep 2017 11:32:57 +0300
+Subject: [PATCH] Fix some RIL related stuff
+
+---
+ .../internal/telephony/SubscriptionController.java       |  8 ++++----
+ .../internal/telephony/SubscriptionInfoUpdater.java      | 16 ++++++----------
+ 2 files changed, 10 insertions(+), 14 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/SubscriptionController.java b/src/java/com/android/internal/telephony/SubscriptionController.java
+index d412213ff..51ccc0892 100644
+--- a/src/java/com/android/internal/telephony/SubscriptionController.java
++++ b/src/java/com/android/internal/telephony/SubscriptionController.java
+@@ -41,7 +41,6 @@
+ import android.text.format.Time;
+ import android.util.Log;
+ import java.util.Objects;
+-import com.android.internal.telephony.RIL;
+ import com.android.internal.telephony.IccCardConstants.State;
+ 
+ import java.io.FileDescriptor;
+@@ -124,7 +123,6 @@ public synchronized void dump(FileDescriptor fd, PrintWriter pw, String[] args)
+     /** The singleton instance. */
+     protected static SubscriptionController sInstance = null;
+     protected static Phone[] sPhones;
+-    private static CommandsInterface[] sCommandsInterfaces;
+     protected Context mContext;
+     protected TelephonyManager mTelephonyManager;
+     protected CallManager mCM;
+@@ -156,7 +154,6 @@ public static SubscriptionController init(Context c, CommandsInterface[] ci) {
+         synchronized (SubscriptionController.class) {
+             if (sInstance == null) {
+                 sInstance = new SubscriptionController(c);
+-                sCommandsInterfaces = ci;
+             } else {
+                 Log.wtf(LOG_TAG, "init() called multiple times!  sInstance = " + sInstance);
+             }
+@@ -1515,7 +1512,7 @@ public void setDefaultDataSubId(int subId) {
+             }
+             if (atLeastOneMatch) {
+                 proxyController.setRadioCapability(rafs);
+-                if (needsSim2gsmOnly()) {
++                if (!SystemProperties.getBoolean("ro.ril.multi_rat_capable", true)) {
+                      updateDataSubNetworkType(slotId, subId);
+                 }
+             } else {
+@@ -1538,6 +1535,7 @@ private void updateDataSubNetworkType(int slotId, int subId) {
+         }
+     }
+ 
++<<<<<<< HEAD
+     private boolean needsSim2gsmOnly() {
+         if (sCommandsInterfaces != null && sCommandsInterfaces[0] instanceof RIL) {
+             return ((RIL) sCommandsInterfaces[0]).needsOldRilFeature("sim2gsmonly");
+@@ -1545,6 +1543,8 @@ private boolean needsSim2gsmOnly() {
+         return false;
+     }
+ 
++=======
++>>>>>>> parent of dac1081e8... Convert multi_rat_capable property into an old RIL feature.
+     private void updateAllDataConnectionTrackers() {
+         // Tell Phone Proxies to update data connection tracker
+         int len = sPhones.length;
+diff --git a/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java b/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
+index 233ee65c1..6684965ca 100644
+--- a/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
++++ b/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
+@@ -45,7 +45,6 @@
+ import android.telephony.TelephonyManager;
+ import android.text.TextUtils;
+ 
+-import com.android.internal.telephony.RIL;
+ import com.android.internal.telephony.uicc.IccCardProxy;
+ import com.android.internal.telephony.uicc.IccConstants;
+ import com.android.internal.telephony.uicc.IccFileHandler;
+@@ -110,7 +109,6 @@
+     public static final String CURR_SUBID = "curr_subid";
+ 
+     private static Phone[] mPhone;
+-    private CommandsInterface[] mCommandsInterfaces;
+     private static Context mContext = null;
+     protected static String mIccId[] = new String[PROJECT_SIM_NUM];
+     private static int[] mInsertSimState = new int[PROJECT_SIM_NUM];
+@@ -130,7 +128,6 @@ public SubscriptionInfoUpdater(Context context, Phone[] phone, CommandsInterface
+ 
+         mContext = context;
+         mPhone = phone;
+-        mCommandsInterfaces = ci;
+         mSubscriptionManager = SubscriptionManager.from(mContext);
+         mPackageManager = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
+         mUserManager = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
+@@ -546,8 +543,13 @@ public void setDefaultDataSubNetworkType(int slotId, int subId) {
+         if (userNwType != SubscriptionManager.DEFAULT_NW_MODE && userNwType != networkType) {
+             networkType = userNwType;
+         }
++        boolean isDsds = TelephonyManager.getDefault().getMultiSimConfiguration()
++                == TelephonyManager.MultiSimVariants.DSDS;
++        if (DBG) Rlog.d(LOG_TAG, "[setDefaultDataSubNetworkType] subId=" + subId);
++        if (DBG) Rlog.d(LOG_TAG, "[setDefaultDataSubNetworkType] isDSDS=" + isDsds);
++        boolean isMultiRat = SystemProperties.getBoolean("ro.ril.multi_rat_capable", true);
+ 
+-        if (needsSim2gsmOnly()) {
++        if (isDsds && !isMultiRat) {
+             int networkType2 = Phone.NT_MODE_GSM_ONLY; // Hardcoded due to modem limitation
+             int slotId1 = SubscriptionManager.DEFAULT_SIM_SLOT_INDEX;
+             int slotId2 = SubscriptionManager.DEFAULT_SIM_SLOT_INDEX;
+@@ -591,12 +593,6 @@ private void setPreferredNwModeForSlot(int slotId, int subId, int networkType,
+                 networkType);
+     }
+ 
+-    private boolean needsSim2gsmOnly() {
+-        if (mCommandsInterfaces[0] instanceof RIL) {
+-            return ((RIL) mCommandsInterfaces[0]).needsOldRilFeature("sim2gsmonly");
+-        }
+-        return false;
+-    }
+ 
+     private void updateCarrierServices(int slotId, String simState) {
+         CarrierConfigManager configManager = (CarrierConfigManager)
+		 
+		 
+		 
+From 3367d13aa0da582b7c94742b331b3e3886a5b595 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Sat, 9 Sep 2017 11:34:00 +0300
+Subject: [PATCH] Fix the RIL completely
+
+---
+ .../com/android/internal/telephony/SubscriptionController.java | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/SubscriptionController.java b/src/java/com/android/internal/telephony/SubscriptionController.java
+index 51ccc0892..5c6c48e04 100644
+--- a/src/java/com/android/internal/telephony/SubscriptionController.java
++++ b/src/java/com/android/internal/telephony/SubscriptionController.java
+@@ -1535,16 +1535,6 @@ private void updateDataSubNetworkType(int slotId, int subId) {
+         }
+     }
+ 
+-<<<<<<< HEAD
+-    private boolean needsSim2gsmOnly() {
+-        if (sCommandsInterfaces != null && sCommandsInterfaces[0] instanceof RIL) {
+-            return ((RIL) sCommandsInterfaces[0]).needsOldRilFeature("sim2gsmonly");
+-        }
+-        return false;
+-    }
+-
+-=======
+->>>>>>> parent of dac1081e8... Convert multi_rat_capable property into an old RIL feature.
+     private void updateAllDataConnectionTrackers() {
+         // Tell Phone Proxies to update data connection tracker
+         int len = sPhones.length;

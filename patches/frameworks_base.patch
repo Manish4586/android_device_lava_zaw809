@@ -1,0 +1,553 @@
+From 09c8290cc275b8e93625ed76e4570ed6b337b879 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Mon, 11 Sep 2017 19:30:48 +0300
+Subject: [PATCH] Fix Graphics
+
+---
+ core/java/android/app/ActivityThread.java     |   6 +-
+ core/java/android/os/GraphicsEnvironment.java | 112 --------------------------
+ core/jni/Android.mk                           |   1 -
+ core/jni/AndroidRuntime.cpp                   |   2 -
+ core/jni/android_os_GraphicsEnvironment.cpp   |  44 ----------
+ 5 files changed, 2 insertions(+), 163 deletions(-)
+ delete mode 100644 core/java/android/os/GraphicsEnvironment.java
+ delete mode 100644 core/jni/android_os_GraphicsEnvironment.cpp
+
+diff --git a/core/java/android/app/ActivityThread.java b/core/java/android/app/ActivityThread.java
+index eb257c59b5c..2139483ed38 100644
+--- a/core/java/android/app/ActivityThread.java
++++ b/core/java/android/app/ActivityThread.java
+@@ -62,7 +62,6 @@
+ import android.os.Debug;
+ import android.os.DropBoxManager;
+ import android.os.Environment;
+-import android.os.GraphicsEnvironment;
+ import android.os.Handler;
+ import android.os.IBinder;
+ import android.os.LocaleList;
+@@ -5049,7 +5048,7 @@ final void handleTrimMemory(int level) {
+         WindowManagerGlobal.getInstance().trimMemory(level);
+     }
+ 
+-    private void setupGraphicsSupport(Context context, File cacheDir) {
++    private void setupGraphicsSupport(LoadedApk info, File cacheDir) {
+         if (Process.isIsolated()) {
+             // Isolated processes aren't going to do UI.
+             return;
+@@ -5062,7 +5061,6 @@ private void setupGraphicsSupport(Context context, File cacheDir) {
+             if (packages != null) {
+                 ThreadedRenderer.setupDiskCache(cacheDir);
+                 RenderScriptCacheDir.setupDiskCache(cacheDir);
+-                GraphicsEnvironment.setupGraphicsEnvironment(context);
+             }
+         } catch (RemoteException e) {
+             throw e.rethrowFromSystemServer();
+@@ -5357,7 +5355,7 @@ private void handleBindApplication(AppBindData data) {
+             final Context deviceContext = appContext.createDeviceProtectedStorageContext();
+             final File codeCacheDir = deviceContext.getCodeCacheDir();
+             if (codeCacheDir != null) {
+-                setupGraphicsSupport(appContext, codeCacheDir);
++                setupGraphicsSupport(data.info, codeCacheDir);
+             } else {
+                 Log.e(TAG, "Unable to setupGraphicsSupport due to missing code-cache directory");
+             }
+diff --git a/core/java/android/os/GraphicsEnvironment.java b/core/java/android/os/GraphicsEnvironment.java
+deleted file mode 100644
+index e4cdbce0979..00000000000
+--- a/core/java/android/os/GraphicsEnvironment.java
++++ /dev/null
+@@ -1,112 +0,0 @@
+-/*
+- * Copyright 2016 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package android.os;
+-
+-import android.content.Context;
+-import android.content.pm.ApplicationInfo;
+-import android.content.pm.PackageManager;
+-import android.opengl.EGL14;
+-import android.os.SystemProperties;
+-import android.util.Log;
+-
+-import dalvik.system.VMRuntime;
+-
+-import java.io.File;
+-
+-/** @hide */
+-public final class GraphicsEnvironment {
+-
+-    private static final boolean DEBUG = false;
+-    private static final String TAG = "GraphicsEnvironment";
+-    private static final String PROPERTY_GFX_DRIVER = "ro.gfx.driver.0";
+-
+-    public static void setupGraphicsEnvironment(Context context) {
+-        chooseDriver(context);
+-
+-        // Now that we've figured out which driver to use for this process, load and initialize it.
+-        // This can take multiple frame periods, and it would otherwise happen as part of the first
+-        // frame, increasing first-frame latency. Starting it here, as a low-priority background
+-        // thread, means that it's usually done long before we start drawing the first frame,
+-        // without significantly disrupting other activity launch work.
+-        Thread eglInitThread = new Thread(
+-                () -> {
+-                    EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
+-                },
+-                "EGL Init");
+-        eglInitThread.start();
+-    }
+-
+-    private static void chooseDriver(Context context) {
+-        String driverPackageName = SystemProperties.get(PROPERTY_GFX_DRIVER);
+-        if (driverPackageName == null || driverPackageName.isEmpty()) {
+-            return;
+-        }
+-        // To minimize risk of driver updates crippling the device beyond user repair, never use an
+-        // updated driver for privileged or non-updated system apps. Presumably pre-installed apps
+-        // were tested thoroughly with the pre-installed driver.
+-        ApplicationInfo ai = context.getApplicationInfo();
+-        if (ai.isPrivilegedApp() || (ai.isSystemApp() && !ai.isUpdatedSystemApp())) {
+-            if (DEBUG) Log.v(TAG, "ignoring driver package for privileged/non-updated system app");
+-            return;
+-        }
+-        ApplicationInfo driverInfo;
+-        try {
+-            driverInfo = context.getPackageManager().getApplicationInfo(driverPackageName,
+-                    PackageManager.MATCH_SYSTEM_ONLY);
+-        } catch (PackageManager.NameNotFoundException e) {
+-            Log.w(TAG, "driver package '" + driverPackageName + "' not installed");
+-            return;
+-        }
+-        String abi = chooseAbi(driverInfo);
+-        if (abi == null) {
+-            if (DEBUG) {
+-                // This is the normal case for the pre-installed empty driver package, don't spam
+-                if (driverInfo.isUpdatedSystemApp()) {
+-                    Log.w(TAG, "updated driver package has no compatible native libraries");
+-                }
+-            }
+-            return;
+-        }
+-
+-        StringBuilder sb = new StringBuilder();
+-        sb.append(driverInfo.nativeLibraryDir)
+-          .append(File.pathSeparator);
+-        sb.append(driverInfo.sourceDir)
+-          .append("!/lib/")
+-          .append(abi);
+-        String paths = sb.toString();
+-
+-        if (DEBUG) Log.v(TAG, "gfx driver package libs: " + paths);
+-        setDriverPath(paths);
+-    }
+-
+-    private static String chooseAbi(ApplicationInfo ai) {
+-        String isa = VMRuntime.getCurrentInstructionSet();
+-        if (ai.primaryCpuAbi != null &&
+-                isa.equals(VMRuntime.getInstructionSet(ai.primaryCpuAbi))) {
+-            return ai.primaryCpuAbi;
+-        }
+-        if (ai.secondaryCpuAbi != null &&
+-                isa.equals(VMRuntime.getInstructionSet(ai.secondaryCpuAbi))) {
+-            return ai.secondaryCpuAbi;
+-        }
+-        return null;
+-    }
+-
+-    private static native void setDriverPath(String path);
+-
+-}
+diff --git a/core/jni/Android.mk b/core/jni/Android.mk
+index 206f44e72f2..e665ef38c9a 100644
+--- a/core/jni/Android.mk
++++ b/core/jni/Android.mk
+@@ -81,7 +81,6 @@ LOCAL_SRC_FILES:= \
+     android_text_AndroidBidi.cpp \
+     android_text_StaticLayout.cpp \
+     android_os_Debug.cpp \
+-    android_os_GraphicsEnvironment.cpp \
+     android_os_MemoryFile.cpp \
+     android_os_MessageQueue.cpp \
+     android_os_Parcel.cpp \
+diff --git a/core/jni/AndroidRuntime.cpp b/core/jni/AndroidRuntime.cpp
+index 32c90c0329c..1fda0b7a09a 100644
+--- a/core/jni/AndroidRuntime.cpp
++++ b/core/jni/AndroidRuntime.cpp
+@@ -157,7 +157,6 @@ extern int register_android_database_SQLiteGlobal(JNIEnv* env);
+ extern int register_android_database_SQLiteDebug(JNIEnv* env);
+ extern int register_android_nio_utils(JNIEnv* env);
+ extern int register_android_os_Debug(JNIEnv* env);
+-extern int register_android_os_GraphicsEnvironment(JNIEnv* env);
+ extern int register_android_os_MessageQueue(JNIEnv* env);
+ extern int register_android_os_Parcel(JNIEnv* env);
+ extern int register_android_os_SELinux(JNIEnv* env);
+@@ -1351,7 +1350,6 @@ static const RegJNIRec gRegJNI[] = {
+     REG_JNI(register_android_database_SQLiteDebug),
+     REG_JNI(register_android_os_Debug),
+     REG_JNI(register_android_os_FileObserver),
+-    REG_JNI(register_android_os_GraphicsEnvironment),
+     REG_JNI(register_android_os_MessageQueue),
+     REG_JNI(register_android_os_SELinux),
+     REG_JNI(register_android_os_Trace),
+diff --git a/core/jni/android_os_GraphicsEnvironment.cpp b/core/jni/android_os_GraphicsEnvironment.cpp
+deleted file mode 100644
+index 905a85adc55..00000000000
+--- a/core/jni/android_os_GraphicsEnvironment.cpp
++++ /dev/null
+@@ -1,44 +0,0 @@
+-/*
+- * Copyright 2016 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#define LOG_TAG "GraphicsEnvironment"
+-
+-#include <gui/GraphicsEnv.h>
+-#include <nativehelper/ScopedUtfChars.h>
+-#include "core_jni_helpers.h"
+-
+-namespace {
+-
+-void setDriverPath(JNIEnv* env, jobject clazz, jstring path) {
+-    ScopedUtfChars pathChars(env, path);
+-    android::GraphicsEnv::getInstance().setDriverPath(pathChars.c_str());
+-}
+-
+-const JNINativeMethod g_methods[] = {
+-    { "setDriverPath", "(Ljava/lang/String;)V", reinterpret_cast<void*>(setDriverPath) },
+-};
+-
+-const char* const kGraphicsEnvironmentName = "android/os/GraphicsEnvironment";
+-
+-} // anonymous namespace
+-
+-namespace android {
+-
+-int register_android_os_GraphicsEnvironment(JNIEnv* env) {
+-    return RegisterMethodsOrDie(env, kGraphicsEnvironmentName, g_methods, NELEM(g_methods));
+-}
+-
+-} // namespace android
+
+
+
+From a9595a663f5a39c744977ae0860654b78e1f8a4b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Mon, 11 Sep 2017 19:32:57 +0300
+Subject: [PATCH] Fix hwui crashing on MediaTek
+
+---
+ libs/hwui/Caches.cpp                  | 13 +++----------
+ libs/hwui/renderthread/EglManager.cpp |  5 +----
+ 2 files changed, 4 insertions(+), 14 deletions(-)
+
+diff --git a/libs/hwui/Caches.cpp b/libs/hwui/Caches.cpp
+index a8ced9b2597..f263bdacd41 100644
+--- a/libs/hwui/Caches.cpp
++++ b/libs/hwui/Caches.cpp
+@@ -83,16 +83,9 @@ bool Caches::init() {
+ }
+ 
+ void Caches::initExtensions() {
+-    if (mExtensions.hasDebugMarker()) {
+-        eventMark = glInsertEventMarkerEXT;
+-
+-        startMark = glPushGroupMarkerEXT;
+-        endMark = glPopGroupMarkerEXT;
+-    } else {
+-        eventMark = eventMarkNull;
+-        startMark = startMarkNull;
+-        endMark = endMarkNull;
+-    }
++    eventMark = eventMarkNull;
++    startMark = startMarkNull;
++    endMark = endMarkNull;
+ }
+ 
+ void Caches::initConstraints() {
+diff --git a/libs/hwui/renderthread/EglManager.cpp b/libs/hwui/renderthread/EglManager.cpp
+index ac6a28fe628..b476ce5bc8c 100644
+--- a/libs/hwui/renderthread/EglManager.cpp
++++ b/libs/hwui/renderthread/EglManager.cpp
+@@ -335,10 +335,7 @@ bool EglManager::swapBuffers(const Frame& frame, const SkRect& screenDirty) {
+         fence();
+     }
+ 
+-    EGLint rects[4];
+-    frame.map(screenDirty, rects);
+-    eglSwapBuffersWithDamageKHR(mEglDisplay, frame.mSurface, rects,
+-            screenDirty.isEmpty() ? 0 : 1);
++    eglSwapBuffers(mEglDisplay, frame.mSurface);
+ 
+     EGLint err = eglGetError();
+     if (CC_LIKELY(err == EGL_SUCCESS)) {
+	 
+	 
+	 
+From 3f61e49477794c7499ed74a89b79b31662bf06ea Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Mon, 11 Sep 2017 19:36:45 +0300
+Subject: [PATCH] Improve the MTP
+
+---
+ core/java/android/os/storage/IMountService.java                | 1 +
+ core/java/android/os/storage/StorageManager.java               | 3 +++
+ packages/MtpDocumentsProvider/src/com/android/mtp/AppFuse.java | 3 +--
+ 3 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/android/os/storage/IMountService.java b/core/java/android/os/storage/IMountService.java
+index 9f4b05cb4d4..1073126326f 100644
+--- a/core/java/android/os/storage/IMountService.java
++++ b/core/java/android/os/storage/IMountService.java
+@@ -2179,6 +2179,7 @@ public boolean onTransact(int code, Parcel data, Parcel reply,
+                     data.enforceInterface(DESCRIPTOR);
+                     String name = data.readString();
+                     ParcelFileDescriptor fd = mountAppFuse(name);
++		    if(fd == null) return true;
+                     reply.writeNoException();
+                     reply.writeParcelable(fd, Parcelable.PARCELABLE_WRITE_RETURN_VALUE);
+                     return true;
+diff --git a/core/java/android/os/storage/StorageManager.java b/core/java/android/os/storage/StorageManager.java
+index 12f703d7574..885eb04aae2 100644
+--- a/core/java/android/os/storage/StorageManager.java
++++ b/core/java/android/os/storage/StorageManager.java
+@@ -1294,7 +1294,10 @@ public ParcelFileDescriptor mountAppFuse(String name) {
+             return mMountService.mountAppFuse(name);
+         } catch (RemoteException e) {
+             throw e.rethrowFromSystemServer();
++	} catch (Exception e) {
++            Log.e(TAG, "TTT mountAppFuse error: "+e.getMessage());
+         }
++	return null;
+     }
+ 
+     /// Consts to match the password types in cryptfs.h
+diff --git a/packages/MtpDocumentsProvider/src/com/android/mtp/AppFuse.java b/packages/MtpDocumentsProvider/src/com/android/mtp/AppFuse.java
+index cd78e610654..b03acbbd50e 100644
+--- a/packages/MtpDocumentsProvider/src/com/android/mtp/AppFuse.java
++++ b/packages/MtpDocumentsProvider/src/com/android/mtp/AppFuse.java
+@@ -67,8 +67,7 @@
+     void mount(StorageManager storageManager) throws IOException {
+         Preconditions.checkState(mDeviceFd == null);
+         mDeviceFd = storageManager.mountAppFuse(mName);
+-        mMessageThread = new AppFuseMessageThread(mDeviceFd.dup().detachFd());
+-        mMessageThread.start();
++        if(mDeviceFd != null) { mMessageThread = new AppFuseMessageThread(mDeviceFd.dup().detachFd()); mMessageThread.start();}
+     }
+ 
+     @VisibleForTesting
+	 
+	 
+	 
+From d54aaa7e09674e6631dfed36ca35f0cf66f7fec3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Mon, 11 Sep 2017 19:39:18 +0300
+Subject: [PATCH] Camera fix
+
+---
+ core/java/android/hardware/camera2/legacy/RequestThreadManager.java | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/core/java/android/hardware/camera2/legacy/RequestThreadManager.java b/core/java/android/hardware/camera2/legacy/RequestThreadManager.java
+index da62f5445da..ccd7657170c 100644
+--- a/core/java/android/hardware/camera2/legacy/RequestThreadManager.java
++++ b/core/java/android/hardware/camera2/legacy/RequestThreadManager.java
+@@ -242,6 +242,8 @@ public void onPictureTaken(byte[] data, Camera camera) {
+                     }
+                 } catch (LegacyExceptionUtils.BufferQueueAbandonedException e) {
+                     Log.w(TAG, "Surface abandoned, dropping frame. ", e);
++		} catch (IllegalArgumentException e) {
++                    Log.w(TAG, "no valid native surface, dropping frame. ", e);
+                 }
+             }
+ 
+ 
+ 
+ From a679c3ce05686c40e9ff59f678b2d631b49d58d5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Mon, 11 Sep 2017 19:45:49 +0300
+Subject: [PATCH] Shut up!
+
+---
+ services/core/java/com/android/server/am/BatteryStatsService.java | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/services/core/java/com/android/server/am/BatteryStatsService.java b/services/core/java/com/android/server/am/BatteryStatsService.java
+index ff13125a841..e6241c50375 100644
+--- a/services/core/java/com/android/server/am/BatteryStatsService.java
++++ b/services/core/java/com/android/server/am/BatteryStatsService.java
+@@ -1422,7 +1422,6 @@ private WifiActivityEnergyInfo extractDelta(WifiActivityEnergyInfo latest) {
+                 return data;
+             }
+         }
+-        Slog.e(TAG, "no controller energy info supplied");
+         return null;
+     }
+ 
+ 
+ 
+ From e1f6915a496c56e4dd03b52a91e16c96d0c3164c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Mon, 11 Sep 2017 19:51:07 +0300
+Subject: [PATCH] Correctly display the carrier name
+
+---
+ .../statusbar/policy/MobileSignalController.java         | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/policy/MobileSignalController.java b/packages/SystemUI/src/com/android/systemui/statusbar/policy/MobileSignalController.java
+index 866c5aef931..e2690e8999d 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/policy/MobileSignalController.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/policy/MobileSignalController.java
+@@ -92,6 +92,11 @@ public MobileSignalController(Context context, Config config, boolean hasMobileD
+ 
+         String networkName = info.getCarrierName() != null ? info.getCarrierName().toString()
+                 : mNetworkNameDefault;
++	if (isNumeric(networkName)) {
++            String displayName = info.getDisplayName() != null? info.getDisplayName().toString()
++                : mNetworkNameDefault;
++            networkName = displayName;
++        }
+         mLastState.networkName = mCurrentState.networkName = networkName;
+         mLastState.networkNameData = mCurrentState.networkNameData = networkName;
+         mLastState.enabled = mCurrentState.enabled = hasMobileData;
+@@ -100,6 +105,13 @@ public MobileSignalController(Context context, Config config, boolean hasMobileD
+         updateDataSim();
+     }
+ 
++    private boolean isNumeric(String str) {
++        for (char c : str.toCharArray()) {
++            if (!Character.isDigit(c)) return false;
++        }
++        return true;
++    }
++
+     public void setConfiguration(Config config) {
+         mConfig = config;
+         mapIconSets();
+@@ -360,10 +372,10 @@ void updateNetworkName(boolean showSpn, String spn, String dataSpn,
+         StringBuilder str = new StringBuilder();
+         StringBuilder strData = new StringBuilder();
+         if (showPlmn && plmn != null) {
+-            str.append(plmn);
++            if (!isNumeric(plmn)) str.append(plmn);
+             strData.append(plmn);
+         }
+-        if (showSpn && spn != null) {
++        if (spn != null) {
+             if (str.length() != 0) {
+                 str.append(mNetworkNameSeparator);
+             }
+
+
+From f488e73caae9f58d609ee9c1a3dc41eefa33e851 Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Sun, 17 Apr 2016 13:39:34 +0200
+Subject: [PATCH] Add prepareWithoutScan (for FMRadio)
+
+Change-Id: I81fb9ec96597f07310ca89af84ca85d647eecee0
+---
+ api/current.txt                           | 1 +
+ api/system-current.txt                    | 1 +
+ media/java/android/media/MediaPlayer.java | 3 +++
+ 3 files changed, 5 insertions(+)
+
+diff --git a/api/current.txt b/api/current.txt
+index 8655d899580..941cd218833 100644
+--- a/api/current.txt
++++ b/api/current.txt
+@@ -21192,6 +21192,7 @@ package android.media {
+     method public boolean isPlaying();
+     method public void pause() throws java.lang.IllegalStateException;
+     method public void prepare() throws java.io.IOException, java.lang.IllegalStateException;
++    method public void prepareWithoutScan() throws java.io.IOException, java.lang.IllegalStateException;
+     method public void prepareAsync() throws java.lang.IllegalStateException;
+     method public void release();
+     method public void reset();
+diff --git a/api/system-current.txt b/api/system-current.txt
+index 0fe164a269c..920214f081b 100644
+--- a/api/system-current.txt
++++ b/api/system-current.txt
+@@ -22721,6 +22721,7 @@ package android.media {
+     method public boolean isPlaying();
+     method public void pause() throws java.lang.IllegalStateException;
+     method public void prepare() throws java.io.IOException, java.lang.IllegalStateException;
++    method public void prepareWithoutScan() throws java.io.IOException, java.lang.IllegalStateException;
+     method public void prepareAsync() throws java.lang.IllegalStateException;
+     method public void release();
+     method public void reset();
+diff --git a/media/java/android/media/MediaPlayer.java b/media/java/android/media/MediaPlayer.java
+index e5f7527c9db..fdc18934914 100644
+--- a/media/java/android/media/MediaPlayer.java
++++ b/media/java/android/media/MediaPlayer.java
+@@ -1184,6 +1184,9 @@ public void prepare() throws IOException, IllegalStateException {
+         _prepare();
+         scanInternalSubtitleTracks();
+     }
++    public void prepareWithoutScan() throws IOException, IllegalStateException {
++        _prepare();
++    }
+ 
+     private native void _prepare() throws IOException, IllegalStateException;
+ 
+From 8b6db19e13ada2f72ab66b8854a1314ca5b4d940 Mon Sep 17 00:00:00 2001
+From: Meticulus <theonejohnnyd@gmail.com>
+Date: Sun, 11 Sep 2016 06:36:28 -0500
+Subject: [PATCH] Fix Incall UI crash
+
+Change-Id: I3fa70da9ee597b5001963ab87086339bbb511441
+---
+ libs/hwui/LayerRenderer.cpp | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/libs/hwui/LayerRenderer.cpp b/libs/hwui/LayerRenderer.cpp
+index 137316f5772..6cc0529e505 100644
+--- a/libs/hwui/LayerRenderer.cpp
++++ b/libs/hwui/LayerRenderer.cpp
+@@ -194,7 +194,13 @@ Layer* LayerRenderer::createRenderLayer(RenderState& renderState, uint32_t width
+         ALOGW("Could not obtain an FBO");
+         return nullptr;
+     }
+-
++#ifdef MTK_HARDWARE
++    if (width == 0 && height == 0) {
++        ALOGW("Trying to obtain a zero-size layer, setting fall-back size 512x768");
++        width = 512;
++        height = 768;
++    }
++#endif
+     caches.textureState().activateTexture(0);
+     Layer* layer = caches.layerCache.get(renderState, width, height);
+     if (!layer) {
+@@ -327,7 +333,7 @@ void LayerRenderer::destroyLayer(Layer* layer) {
+ }
+ 
+ void LayerRenderer::flushLayer(RenderState& renderState, Layer* layer) {
+-#ifdef GL_EXT_discard_framebuffer
++#if 0
+     if (!layer) return;
+ 
+     GLuint fbo = layer->getFbo();

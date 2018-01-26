@@ -1,0 +1,25 @@
+From ffec98fd440eb2b1c4fb83f3aa9b468b62d2d0e0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vojt=C4=9Bch=20Hejsek?= <hejsekvojtech@gmail.com>
+Date: Thu, 14 Sep 2017 19:47:47 +0200
+Subject: [PATCH] Fix SD Card name on MediaTek
+
+---
+ Utils.cpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Utils.cpp b/Utils.cpp
+index cc66101..d8f700e 100644
+--- a/Utils.cpp
++++ b/Utils.cpp
+@@ -198,6 +198,11 @@ status_t BindMount(const std::string& source, const std::string& target) {
+ 
+ static status_t readMetadata(const std::string& path, std::string& fsType,
+         std::string& fsUuid, std::string& fsLabel, bool untrusted) {
++    
++    fsType.clear();
++    fsUuid.clear();
++    fsLabel.clear();
++    
+ #ifdef MINIVOLD
+     char *val = NULL;
+     val = blkid_get_tag_value(NULL, "TYPE", path.c_str());
