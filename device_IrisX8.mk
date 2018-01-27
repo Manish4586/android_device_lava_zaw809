@@ -153,6 +153,10 @@ PRODUCT_PROPERTY_OVERRIDES := \
 # USB
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += persist.sys.usb.config=mtp,adb
 
+# Set default player to AwesomePlayer
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.sys.media.use-awesome=true
+
 PRODUCT_NAME := full_irisX8
 PRODUCT_DEVICE := IrisX8
 
