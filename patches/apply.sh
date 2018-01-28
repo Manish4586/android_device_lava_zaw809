@@ -46,5 +46,7 @@
 # cd ../../..
 # cd packages/services/Telephony
 # patch -p1 -p1 < ../../../device/Lava/IrisX8/patches/packages_services_Telephony.patch
+echo Cleaning Directory For Building
 git clean -f -d
+cd ../../..
  echo Successfuly patched! Go ahead and start building! @ Manish_4586
