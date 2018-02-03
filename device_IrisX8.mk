@@ -24,10 +24,8 @@ PRODUCT_PACKAGES += \
 
 # Symbols
 PRODUCT_PACKAGES += \
+    libmtk_symbols \
     libxlog
-
-PRODUCT_PACKAGES += \
-    libgralloc_extra
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -118,6 +116,9 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     Snap
     
+# Substratum
+PRODUCT_PACKAGES += \
+    ThemeInterfacer
     
 # FM Radio
 PRODUCT_PACKAGES += \
@@ -134,10 +135,6 @@ PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_video_le.xml:system/etc/media_codecs_google_video.xml \
     $(LOCAL_PATH)/configs/media_profiles.xml:system/etc/media_profiles.xml	
-
-# Keylayout overrides
-PRODUCT_COPY_FILES_OVERRIDES += \
-    system/usr/keylayout/Generic.kl
 
 PRODUCT_PROPERTY_OVERRIDES := \
 	ro.mediatek.version.release=Manish_4586@Lava \
@@ -166,6 +163,10 @@ PRODUCT_DEVICE := IrisX8
 # Boot animation
 TARGET_SCREEN_HEIGHT := 1280
 TARGET_SCREEN_WIDTH := 720
+
+# AAPT
+PRODUCT_AAPT_CONFIG := normal
+PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
 PRODUCT_PACKAGES += \
     librs_jni \
