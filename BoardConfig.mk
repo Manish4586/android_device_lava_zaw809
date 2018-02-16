@@ -105,6 +105,12 @@ TW_CRYPTO_REAL_BLKDEV := "/dev/block/mmcblk0p3"
 TW_CRYPTO_MNT_POINT := "/data"
 TW_CRYPTO_FS_TYPE := "ext4"
 TW_INCLUDE_FB2PNG := true
+TW_CRYPTO_FS_OPTIONS := "nosuid,nodev,noatime,discard,noauto_da_alloc,data=ordered"
+TW_NO_USB_STORAGE := true
+TW_EXCLUDE_SUPERSU := true
+TW_CUSTOM_CPU_TEMP_PATH := /sys/class/thermal/thermal_zone1/temp
+TW_EXTRA_LANGUAGES := true
+TW_BUILD_ZH_CN_SUPPORT := true
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
