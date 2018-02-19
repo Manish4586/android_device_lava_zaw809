@@ -12,7 +12,7 @@ on early-init
 # create mountpoints
     mkdir /mnt 0775 root system
     mount debugfs /sys/kernel/debug /sys/kernel/debug
-    setprop ro.mtk.hardware mt6582
+    setprop ro.mtk.hardware mt6592
     mkdir /storage 0055 system sdcard_r
     mkdir /storage/sdcard0 0000 system system
     # for backwards compatibility
@@ -45,6 +45,12 @@ loglevel 5
     mkdir /config 0500 root root
     mkdir /protect_f 0771 system system
     mkdir /protect_s 0771 system system
+    
+    # See storage config details at http://source.android.com/tech/storage/
+    mkdir /mnt/shell 0700 shell shell
+    mkdir /mnt/media_rw 0700 media_rw media_rw
+    mkdir /storage 0751 root sdcard_r
+
 
     # Filesystem image public mount points.
     mkdir /mnt/obb 0700 root system
@@ -93,7 +99,7 @@ on late-init
 # mount different fs start
 on fs
     write /proc/bootprof "INIT:eMMC:Mount_All_START"
-    mount_all /fstab.mt6582
+    mount_all /fstab.mt6592
     write /proc/bootprof "INIT:eMMC:Mount_All_END"
 
     #for SD card with partition(s), always mount the 1st
@@ -116,10 +122,10 @@ on post-fs
     mkdir /cache/recovery 0770 system system
 
     chown system system /protect_f
-    chmod 0771 /protect_f
+    chmod 0770 /protect_f
 
     chown system system /protect_s
-    chmod 0771 /protect_s
+    chmod 0770 /protect_s
 
     # This may have been created by the recovery system with odd permissions
     chown system cache /cache/recovery
@@ -152,7 +158,7 @@ on post-fs-data
     installkey /data
 
 # create basic filesystem structure
-    mkdir /data/nvram 0771 root system
+    mkdir /data/nvram 2770 root system
     mkdir /data/misc 01771 system misc
     mkdir /data/misc/bluetoothd 0770 bluetooth bluetooth
     mkdir /data/misc/bluetooth 0770 system system
@@ -226,6 +232,12 @@ on post-fs-data
     chown root diag /sys/module/tpd_debug/parameters/tpd_em_log
     chown root diag /sys/module/tpd_debug/parameters/tpd_em_log_to_fs
 
+    chmod 0777 /dev/pmem_multimedia
+    chmod 0777 /dev/mt6516-isp
+    chmod 0777 /dev/mt6516-IDP
+    chmod 0777 /dev/mt9p012
+    chmod 0777 /dev/mt6516_jpeg
+    chmod 0777 /dev/FM50AF
     chmod 0770 /dev/pmem_multimedia
 
     # RTC
@@ -233,8 +245,14 @@ on post-fs-data
 
     # Modem related device nodes
     mkdir /data/nvram/md  0770 root system
-
+    mkdir /data/nvram/md2 0770 root system
+    
     # CCCI
+    #  Build-in Modified - S
+#   insmod /system/lib/modules/ccci_plat.ko
+#   insmod /system/lib/modules/ccci.ko
+#  Build-in Modified - E
+#   chown radio radio /sys/class/BOOT/BOOT/boot/md
     chown radio radio /sys/kernel/ccci/boot
 
     # M4U
@@ -243,23 +261,23 @@ on post-fs-data
     chmod 0444 /dev/M4U_device
 
     # Sensor
-    chmod 0660 /dev/hwmsensor
-    chmod 0660 /dev/gyroscope
-    chmod 0660 /dev/msensor
-    chmod 0660 /dev/gsensor
-    chmod 0660 /dev/alsps
+    chmod 0666 /dev/hwmsensor
+    chmod 0666 /dev/gyroscope
+    chmod 0666 /dev/msensor
+    chmod 0666 /dev/gsensor
+    chmod 0666 /dev/alsps
 
     #VideoCodec
-    chmod 0660 /dev/Vcodec
+    chmod 0666 /dev/Vcodec
     chown system media /dev/Vcodec
 
     mkdir /data/amit/
 
     # GPIO
-    chmod 0660 /dev/mtgpio
+    chmod 0666 /dev/mtgpio
 
     # Android SEC related device nodes
-    chmod 0660 /dev/sec
+    chmod 0666 /dev/sec
     chown root system /dev/sec
 
     # device info interface
@@ -270,7 +288,7 @@ on post-fs-data
     #change partition permission
     exec /system/etc/partition_permission.sh
 
-    chmod 0660 /dev/exm0
+    chmod 0666 /dev/exm0
     # Separate location for storing security policy files on data
     mkdir /data/security 0711 system system
     # Create all remaining /data root dirs so that they are made through init
@@ -527,3 +545,10 @@ on property:sys.usb.com_config=1
     write /sys/class/android_usb/android0/functions acm
     write /sys/class/android_usb/android0/bDeviceClass 02
     write /sys/class/android_usb/android0/enable 1
+    chown system radio /dev/ttyGS3
+    chmod 0660 /dev/ttyGS3
+    chown system radio /dev/ttyGS1
+    chmod 0660 /dev/ttyGS1
+    start adbd
+    setprop sys.usb.state $sys.usb.config
+    setprop sys.usb.acm_idx 1,2,4
