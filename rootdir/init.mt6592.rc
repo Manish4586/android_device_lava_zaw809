@@ -39,6 +39,16 @@ on init
 on fs
     write /proc/bootprof "INIT:eMMC:Mount_All_START"
     mount_all /fstab.mt6592
+    exec /system/bin/chmod 0660 /dev/proinfo
+    exec /system/bin/chown root:system /dev/proinfo
+    exec /system/bin/chmod 0660 /dev/nvram
+    exec /system/bin/chown root:system /dev/nvram
+    exec /system/bin/chmod 0660 /dev/misc
+    exec /system/bin/chown root:system /dev/misc
+    exec /system/bin/chown root:system /dev/frp
+    exec /system/bin/chmod 0660 /dev/frp
+    exec /system/bin/chown root:system /emmc@frp
+    exec /system/bin/chmod 0660 /emmc@frp
     write /proc/bootprof "INIT:eMMC:Mount_All_END"
 
 service agpsd /system/bin/mtk_agpsd
@@ -363,6 +373,7 @@ on post-fs-data
     chown system system /sys/class/misc/m_baro_misc/baroflush
     #Accdet
     chown root radio /sys/devices/platform/Accdet_Driver/driver/accdet_call_state
+   
     #VideoCodec
     chmod 0660 /dev/Vcodec
     chown media media /dev/Vcodec
@@ -442,6 +453,13 @@ on post-fs-data
     # BT relayer mode used VCOM
     chown bluetooth radio /dev/ttyGS2
     chmod 0660 /dev/ttyGS2
+    
+    # bluetooth
+    mkdir /data/@btmtk 0770 bluetooth net_bt
+    chown bluetooth bluetooth /data/@btmtk/host_cache
+    chown bluetooth bluetooth /data/@btmtk/dev_cache
+    chown bluetooth bluetooth /dev/hid-keyboard
+    chmod 0660 /dev/hid-keyboard
 
     #Use uinput's default permission
     chown system net_bt_admin /dev/uinput
@@ -505,6 +523,12 @@ on post-fs-data
     # SMI
     chmod 0660 /dev/MTK_SMI
     chown media media /dev/MTK_SMI
+    
+    # BT SCO CVSD, for MT6592 CVSD codec on AP
+    chmod 0660 /dev/ebc
+    chown system media /dev/ebc
+
+    chmod 0666 /dev/exm0
 
     #mtk_sched
     chmod 0660 /dev/mtk_sched
@@ -512,8 +536,6 @@ on post-fs-data
 
     chmod 666 /dev/mali
     chown system graphics /dev/mali
-
-
 
     #sbchk
     mkdir /data/sec 0750 system system
@@ -527,7 +549,6 @@ on post-fs-data
 #/dev/ttyMT2 for Connectivity BT/FM/GPS usage
     chmod 0660 /dev/ttyMT2
     chown system system /dev/ttyMT2
-
 
 #
 # Connectivity related device nodes & configuration (end)
@@ -817,6 +838,21 @@ service bluetoothd /system/bin/bluetoothd -n
     # let bluetoothd drop uid to bluetooth with the right linux capabilities
     group bluetooth net_bt_admin misc
     disabled
+    
+service mtkbt /system/bin/mtkbt
+     class late_start
+     socket bt.int.adp dgram 660 bluetooth net_bt
+     socket bt.a2dp.stream dgram 660 bluetooth net_bt
+     user bluetooth
+     group system vpn net_admin inet net_raw net_bt bluetooth net_bt_admin net_bt_stack sdcard_r
+     oneshot
+     
+     #add for power-off alarm by manish_4586
+service poad /system/bin/poad
+     class main
+     user system
+     group system
+     oneshot
 
 #
 #  External Modme control related services
@@ -917,6 +953,11 @@ service lsm303md /system/bin/lsm303md
 #
 #sensor service (end)
 #
+
+service MtkCodecService /system/bin/MtkCodecService
+    class main
+    user system
+    group audio media sdcard_r
 
 service shutdown /system/bin/shutdown
     user root
