@@ -238,7 +238,6 @@ on post-fs-data
     chmod 0777 /dev/mt9p012
     chmod 0777 /dev/mt6516_jpeg
     chmod 0777 /dev/FM50AF
-    chmod 0770 /dev/pmem_multimedia
 
     # RTC
     mkdir /data/misc/rtc 0770 system system
