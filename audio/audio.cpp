@@ -18,7 +18,7 @@ extern "C"
 		void *hdl;
 		struct legacy_audio_module *hmi;
 
-		hdl = dlopen("libaudio.primary.default.so", RTLD_NOW | RTLD_LOCAL);
+		hdl = dlopen("audio.primary.mt6592.so", RTLD_NOW | RTLD_LOCAL);
 		if (hdl == NULL) {
 			ALOGE("MTK Audio loadLibrary() failed to open %s", dlerror());
 			return -1;
