@@ -189,7 +189,7 @@ on post-fs-data
     chown dhcp dhcp /data/misc/dhcp
 
     # create basic filesystem structure
-    mkdir /data/nvram 0771 root system
+    mkdir /data/nvram 2770 root system
     mkdir /data/nvram/bt 2771 bluetooth bluetooth
     mkdir /data/nvram/media 0771 media audio
     mkdir /data/misc/touchpanel 0755 root system
