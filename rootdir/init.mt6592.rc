@@ -1,4 +1,5 @@
 # platform specific configuration items
+import / init.project.rc
 import /init.mt6592.usb.rc
 import /init.modem.rc
 
@@ -6,8 +7,6 @@ on early-init
     mount debugfs /sys/kernel/debug /sys/kernel/debug
     write /sys/class/leds/lcd-backlight/trigger "backlight"
     setprop ro.mtk.hardware mt6592
-    
-    export LD_PRELOAD=/system/lib/libmtk_symbols.so 
 
 on init
     # See storage config details at http://source.android.com/tech/storage/
@@ -1004,5 +1003,6 @@ service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
 service enableswap /system/bin/sh /enableswap.sh
     class core
     oneshot
+
 
 
