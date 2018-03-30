@@ -1,4 +1,4 @@
-![LineageOS](https://lineageos.org/images/logo-2.png)
+![LineageOS](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7_4t3OClciu2cCMaHHfQ4JH94i-AH6JcTi8bUNC2mPCVeHKJvv39X4TDQ)
 
 # 7.1.2 Iris X8 L
 
