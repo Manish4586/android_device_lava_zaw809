@@ -23,6 +23,7 @@ mediatek.wlan.ctia=0
 wifi.tethering.interface=ap0
 #
 ro.sf.lcd_density=320
+
 ro.opengles.version=131072
 
 ro.nfc.port=I2C
@@ -60,3 +61,14 @@ debug.hwui.render_dirty_regions=false
 persist.sys.timezone=Asia/Calcutta
 persist.sys.strictmode.visual=0
 persist.sys.strictmode.disable=1
+persist.camera.HAL3.enabled=1
+media.stagefright.legacyencoder=true
+media.stagefright.less-secure=true
+persist.media.treble_omx=false
+persist.sys.display.clearMotion=1
+persist.clearMotion.fblevel.nrm=255
+persist.clearMotion.fblevel.bdr=255 
+ril.telephony.mode=0
+dalvik.vm.mtk-stack-trace-file=/data/anr/mtk_traces.txt
+mediatek.wlan.chip=MTK_CONNSYS_MT6592
+mediatek.wlan.module.postfix=_mtk_connsys_mt6592
