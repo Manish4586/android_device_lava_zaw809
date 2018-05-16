@@ -1,0 +1,18 @@
+###             update by @hyperion70 12.03.16
+
+/boot			emmc			/dev/bootimg		flags=display="Boot";backup=1;flashimg=1
+/logo			emmc			/dev/logo	    	flags=display="Logo";backup=1
+/misc			emmc			/dev/misc	    	flags=display="Misc";backup=0
+/nvram			emmc			/dev/nvram	    	flags=display="Nvram";backup=1
+/recovery		emmc			/dev/recovery		flags=display="Recovery";backup=1;flashimg=1
+/uboot			emmc			/dev/uboot	    	flags=display="Uboot";backup=1;flashimg=1
+/pro_info   	emmc		    /dev/pro_info       flags=subpartitionof=/uboot;backup=1
+/sec_ro     	emmc		    /dev/sec_ro         flags=subpartitionof=/uboot;backup=1
+/expdb      	emmc		    /dev/expdb          flags=subpartitionof=/uboot;backup=1
+/protect_f  	emmc		    /dev/protect_f      flags=display="Protect";backup=1
+/protect_s  	emmc		    /dev/protect_s      flags=subpartitionof=/protect_f;backup=1
+/system			ext4			/emmc@android		flags=display="System";wipeingui;flashimg=1
+/cache			ext4			/emmc@cache	    	flags=display="Cache"
+/data			ext4			/emmc@usrdata		flags=display="Data"
+#/emmc           vfat        /dev/block/mmcblk0p8						flags=display="PhoneStorage";storage;wipeingui;removable
+/external_sd	auto		/dev/block/mmcblk1p1	/dev/block/mmcblk1	flags=display="SDcard";storage;wipeingui;removable;backup=0;settingsstorage
