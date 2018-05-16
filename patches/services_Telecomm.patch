@@ -1,0 +1,53 @@
+From c11b7063c8b3a7fe86080eb4607b25d268dc90ee Mon Sep 17 00:00:00 2001
+From: dee3000 <dee3000@bk.ru>
+Date: Mon, 23 May 2016 18:43:40 +0300
+Subject: [PATCH] fixxx
+
+---
+ .../android/server/telecom/ProximitySensorManager.java   | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/src/com/android/server/telecom/ProximitySensorManager.java b/src/com/android/server/telecom/ProximitySensorManager.java
+index 217dd3b..fc27130 100644
+--- a/src/com/android/server/telecom/ProximitySensorManager.java
++++ b/src/com/android/server/telecom/ProximitySensorManager.java
+@@ -18,6 +18,7 @@ package com.android.server.telecom;
+ 
+ import android.content.Context;
+ import android.os.PowerManager;
++import android.os.SystemProperties;
+ 
+ import cyanogenmod.hardware.CMHardwareManager;
+ 
+@@ -31,6 +32,9 @@ public class ProximitySensorManager extends CallsManagerListenerBase {
+     private boolean mWasTapToWakeEnabled = false;
+     private final CMHardwareManager mHardware;
+ 
++    // MTK/Meizu workaround
++    private static final boolean mIsMTKHardware = !(SystemProperties.get("ro.mediatek.platform", "").equals(""));
++
+     public ProximitySensorManager(Context context) {
+         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+         mHardware = CMHardwareManager.getInstance(context);
+@@ -48,6 +52,18 @@ public class ProximitySensorManager extends CallsManagerListenerBase {
+         if (CallsManager.getInstance().getCalls().isEmpty()) {
+             Log.i(this, "All calls removed, resetting proximity sensor to default state");
+             turnOff(true);
++
++            // MTK has screenOnImmediately set to false, at least on Meizu MX4
++            // passing true would result in tap-to-wake or proximity sensor
++            // stopping working if remote hung up.
++            // However it seems only calling turnOff with false can't eliminate
++            // all cases of malfunctioning... so we'd rather keep the original
++            // sources and re-calibrate instead.
++            if (mIsMTKHardware) {
++                // call into calibration service if one exists
++                // hopefully none will run into namespace collision with me...
++                SystemProperties.set("ctl.start", "ps_calibrate");
++            }
+         }
+         super.onCallRemoved(call);
+     }
+-- 
+1.9.1
+

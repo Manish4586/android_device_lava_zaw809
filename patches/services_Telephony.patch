@@ -1,0 +1,43 @@
+From 793b0dc7da415fc7cf7214c28caf4ac993b11823 Mon Sep 17 00:00:00 2001
+From: dee3000 <dee3000@bk.ru>
+Date: Mon, 23 May 2016 18:16:58 +0300
+Subject: [PATCH] fix
+
+---
+ src/com/android/phone/CardStateMonitor.java | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/com/android/phone/CardStateMonitor.java b/src/com/android/phone/CardStateMonitor.java
+index da128c9..9288005 100644
+--- a/src/com/android/phone/CardStateMonitor.java
++++ b/src/com/android/phone/CardStateMonitor.java
+@@ -70,6 +70,8 @@ public class CardStateMonitor extends Handler {
+     private static final int EVENT_ICC_CHANGED = 1;
+     private static final int EVENT_ICCID_LOAD_DONE = 2;
+ 
++    private boolean mNeedsFakeIccid = false;
++
+     static class CardInfo {
+         boolean mLoadingIcc;
+         String mIccId;
+@@ -185,6 +187,9 @@ public class CardStateMonitor extends Handler {
+         String iccId = null;
+         if (iccIdResult.exception != null) {
+             logd("Exception in GET ICCID," + iccIdResult.exception);
++            if(mNeedsFakeIccid) {
++                iccId = IccConstants.FAKE_ICCID;
++            }
+         } else {
+             iccId = IccUtils.bcdToString(data, 0, data.length);
+             logd("get iccid on card" + cardIndex + ", iccId=" + iccId);
+@@ -229,6 +234,7 @@ public class CardStateMonitor extends Handler {
+         if (validApp != null) {
+             IccFileHandler fileHandler = validApp.getIccFileHandler();
+             if (fileHandler != null) {
++                mNeedsFakeIccid = fileHandler.needsFakeIccid();
+                 fileHandler.loadEFTransparent(IccConstants.EF_ICCID,
+                         obtainMessage(EVENT_ICCID_LOAD_DONE, sub));
+                 request = true;
+-- 
+1.9.1
+
