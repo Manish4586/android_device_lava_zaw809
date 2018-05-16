@@ -1,0 +1,108 @@
+From 67ef881b7822a4dca00cb5dba057d0b0ea3cb9c9 Mon Sep 17 00:00:00 2001
+From: SamarV-121 <samarvispute121@gmail.com>
+Date: Sat, 29 Oct 2016 12:27:33 +0000
+Subject: [PATCH] compatible Sepolicy version 26
+
+Change-Id: I0536c27669edfbd9d31d8411c62e702ed724484a
+---
+ Android.mk       | 1 -
+ domain.te        | 1 -
+ isolated_app.te  | 3 ---
+ net.te           | 2 +-
+ shell.te         | 3 ---
+ te_macros        | 2 +-
+ untrusted_app.te | 3 ---
+ 7 files changed, 2 insertions(+), 13 deletions(-)
+
+diff --git a/Android.mk b/Android.mk
+index 6873d07..e7b1bd4 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -51,7 +51,6 @@ sepolicy_build_files := security_classes \
+                         policy_capabilities \
+                         te_macros \
+                         attributes \
+-                        ioctl_macros \
+                         *.te \
+                         roles \
+                         users \
+diff --git a/domain.te b/domain.te
+index 09bd2fa..bcf20a5 100644
+--- a/domain.te
++++ b/domain.te
+@@ -35,7 +35,6 @@ allow domain self:lnk_file r_file_perms;
+ allow domain self:{ fifo_file file } rw_file_perms;
+ allow domain self:unix_dgram_socket { create_socket_perms sendto };
+ allow domain self:unix_stream_socket { create_stream_socket_perms connectto };
+-allow domain domain:{ unix_dgram_socket unix_stream_socket } unpriv_unix_sock_ioctls;
+ 
+ # Inherit or receive open files from others.
+ allow domain init:fd use;
+diff --git a/isolated_app.te b/isolated_app.te
+index 535e5de..ef68986 100644
+--- a/isolated_app.te
++++ b/isolated_app.te
+@@ -18,9 +18,6 @@ allow isolated_app app_data_file:file { read write getattr lock };
+ allow isolated_app activity_service:service_manager find;
+ allow isolated_app display_service:service_manager find;
+ 
+-# only allow unprivileged socket ioctl commands
+-allow isolated_app domain:{ rawip_socket tcp_socket udp_socket } unpriv_sock_ioctls;
+-
+ #####
+ ##### Neverallow
+ #####
+diff --git a/net.te b/net.te
+index 4616eb1..6aa12f2 100644
+--- a/net.te
++++ b/net.te
+@@ -13,7 +13,7 @@ allow netdomain node_type:{ tcp_socket udp_socket } node_bind;
+ allow netdomain port_type:udp_socket name_bind;
+ allow netdomain port_type:tcp_socket name_bind;
+ # See changes to the routing table.
+-allow netdomain self:netlink_route_socket { create read getattr write setattr lock append bind connect getopt setopt shutdown nlmsg_read };
++allow netdomain self:netlink_route_socket { create_socket_perms nlmsg_read };
+ 
+ # Talks to netd via dnsproxyd socket.
+ unix_socket_connect(netdomain, dnsproxyd, netd)
+diff --git a/shell.te b/shell.te
+index 4cff1a6..1279bf4 100644
+--- a/shell.te
++++ b/shell.te
+@@ -80,9 +80,6 @@ allow shell domain:process getattr;
+ allow shell bootchart_data_file:dir rw_dir_perms;
+ allow shell bootchart_data_file:file create_file_perms;
+ 
+-# only allow unprivileged socket ioctl commands
+-allow shell self:{ rawip_socket tcp_socket udp_socket } unpriv_sock_ioctls;
+-
+ # Do not allow shell to hard link to any files.
+ # In particular, if shell hard links to app data
+ # files, installd will not be able to guarantee the deletion
+diff --git a/te_macros b/te_macros
+index cae44e1..70b1883 100644
+--- a/te_macros
++++ b/te_macros
+@@ -202,7 +202,7 @@ allow $1 self:capability2 block_suspend;
+ define(`selinux_check_access', `
+ allow $1 selinuxfs:file rw_file_perms;
+ allow $1 kernel:security compute_av;
+-allow $1 self:netlink_selinux_socket { read write create getattr setattr lock relabelfrom relabelto append bind connect listen accept getopt setopt shutdown recvfrom sendto recv_msg send_msg name_bind };
++allow $1 self:netlink_selinux_socket *;
+ ')
+ 
+ #####################################
+diff --git a/untrusted_app.te b/untrusted_app.te
+index a17943f..1ab18c3 100644
+--- a/untrusted_app.te
++++ b/untrusted_app.te
+@@ -101,9 +101,6 @@ allow untrusted_app persistent_data_block_service:service_manager find;
+ allow untrusted_app { apk_tmp_file apk_private_tmp_file }:dir r_dir_perms;
+ allow untrusted_app { apk_tmp_file apk_private_tmp_file }:file r_file_perms;
+ 
+-# only allow unprivileged socket ioctl commands
+-allow untrusted_app domain:{ rawip_socket tcp_socket udp_socket } unpriv_sock_ioctls;
+-
+ # Allow GMS core to access perfprofd output, which is stored
+ # in /data/misc/perfprofd/. GMS core will need to list all
+ # data stored in that directory to process them one by one.

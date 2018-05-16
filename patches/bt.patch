@@ -1,0 +1,35 @@
+From 3f0926aec7649f4f59c036e533bddb1686ff22da Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Sat, 16 Apr 2016 23:45:01 +0200
+Subject: [PATCH] Fix bluetooth errors
+
+Change-Id: If9e9c01e7208166fb1a845424a8ce6992baf53e3
+---
+ device/src/controller.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/device/src/controller.c b/device/src/controller.c
+index df00d68..c5d8b74 100755
+--- a/device/src/controller.c
++++ b/device/src/controller.c
+@@ -184,8 +184,10 @@ static future_t *start_up(void) {
+     page_number++;
+   }
+ 
++  ble_offload_features_supported = false;
++
+   // read BLE offload features support from controller
+-  response = AWAIT_COMMAND(packet_factory->make_ble_read_offload_features_support());
++  /*response = AWAIT_COMMAND(packet_factory->make_ble_read_offload_features_support());
+   packet_parser->parse_ble_read_offload_features_response(response, &ble_offload_features_supported);
+ 
+ #if (SC_MODE_INCLUDED == TRUE)
+@@ -196,7 +198,7 @@ static future_t *start_up(void) {
+       packet_parser->parse_generic_command_complete(response);
+     }
+   }
+-#endif
++#endif*/
+ 
+ #if (BLE_INCLUDED == TRUE)
+   ble_supported = last_features_classic_page_index >= 1 && HCI_LE_HOST_SUPPORTED(features_classic[1].as_array);

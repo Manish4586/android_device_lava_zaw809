@@ -1,0 +1,227 @@
+From d9bad6649562bf89e9e65495a1586aecc1901f51 Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Sun, 24 Apr 2016 03:37:06 +0200
+Subject: [PATCH] Fix various problems
+
+Change-Id: Ifb6e1bde410e388dc0a52a9dca623da31186ac39
+---
+ PublicVolume.cpp | 1 +
+ VolumeBase.cpp   | 2 ++
+ fs/Vfat.cpp      | 1 +
+ 3 files changed, 4 insertions(+)
+
+diff --git a/PublicVolume.cpp b/PublicVolume.cpp
+index bac6499..82c482d 100644
+--- a/PublicVolume.cpp
++++ b/PublicVolume.cpp
+@@ -161,6 +161,7 @@ status_t PublicVolume::doMount() {
+     } else {
+         LOG(WARNING) << getId() << " unsupported filesystem check, skipping";
+     }
++    if (ret == -2) return ret;
+     if (ret) {
+         LOG(ERROR) << getId() << " failed filesystem check";
+         return -EIO;
+diff --git a/VolumeBase.cpp b/VolumeBase.cpp
+index f0c905c..f79e0b7 100644
+--- a/VolumeBase.cpp
++++ b/VolumeBase.cpp
+@@ -205,6 +205,8 @@ status_t VolumeBase::mount() {
+     status_t res = doMount();
+     if (res == OK) {
+         setState(State::kMounted);
++    } else if (res == -2) {
++        return destroy();
+     } else {
+         setState(State::kUnmountable);
+     }
+diff --git a/fs/Vfat.cpp b/fs/Vfat.cpp
+index faff763..4ea36cb 100644
+--- a/fs/Vfat.cpp
++++ b/fs/Vfat.cpp
+@@ -111,6 +111,7 @@ status_t Check(const std::string& source) {
+         default:
+             SLOGE("Filesystem check failed (unknown exit code %d)", rc);
+             errno = EIO;
++            if (rc == 8) return -2;
+             return -1;
+         }
+     } while (0);
+
+From 266d74c24840c269fcf7f1da1d83f11a02d26060 Mon Sep 17 00:00:00 2001
+From: LineageOS-MTK <luzejij@binka.me>
+Date: Thu, 18 May 2017 22:21:50 +0300
+Subject: [PATCH] Correcting the incorrect display of the name of a removable
+ card
+
+---
+ Utils.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Utils.cpp b/Utils.cpp
+index b3f8b92..d1d57e0 100644
+--- a/Utils.cpp
++++ b/Utils.cpp
+@@ -174,6 +174,10 @@ status_t BindMount(const std::string& source, const std::string& target) {
+ 
+ static status_t readMetadata(const std::string& path, std::string& fsType,
+         std::string& fsUuid, std::string& fsLabel, bool untrusted) {
++    fsType.clear();
++    fsUuid.clear();
++    fsLabel.clear();
++
+ #ifdef MINIVOLD
+     char *val = NULL;
+     val = blkid_get_tag_value(NULL, "TYPE", path.c_str());
+
+From 388820c483fa9e51134a907207ccdea865297351 Mon Sep 17 00:00:00 2001
+From: LineageOS-MTK <luzejij@binka.me>
+Date: Sat, 4 Mar 2017 08:53:13 +0300
+Subject: [PATCH] Remove selinux usage
+
+---
+ Loop.cpp  | 15 ---------------
+ Utils.cpp | 40 ----------------------------------------
+ main.cpp  |  5 -----
+ 3 files changed, 60 deletions(-)
+
+diff --git a/Loop.cpp b/Loop.cpp
+index 8872d7a..56d45d1 100644
+--- a/Loop.cpp
++++ b/Loop.cpp
+@@ -134,7 +134,6 @@ int Loop::create(const char *id, const char *loopFile, char *loopDeviceBuffer, s
+     for (i = 0; i < LOOP_MAX; i++) {
+         struct loop_info64 li;
+         int rc;
+-        char *secontext = NULL;
+ 
+         sprintf(filename, "/dev/block/loop%d", i);
+ 
+@@ -145,28 +144,14 @@ int Loop::create(const char *id, const char *loopFile, char *loopDeviceBuffer, s
+         mode_t mode = 0660 | S_IFBLK;
+         unsigned int dev = (0xff & i) | ((i << 12) & 0xfff00000) | (7 << 8);
+ 
+-        if (sehandle) {
+-            rc = selabel_lookup(sehandle, &secontext, filename, S_IFBLK);
+-            if (rc == 0)
+-                setfscreatecon(secontext);
+-        }
+-
+         if (mknod(filename, mode, dev) < 0) {
+             if (errno != EEXIST) {
+                 int sverrno = errno;
+                 SLOGE("Error creating loop device node (%s)", strerror(errno));
+-                if (secontext) {
+-                    freecon(secontext);
+-                    setfscreatecon(NULL);
+-                }
+                 errno = sverrno;
+                 return -1;
+             }
+         }
+-        if (secontext) {
+-            freecon(secontext);
+-            setfscreatecon(NULL);
+-        }
+ 
+         if ((fd = open(filename, O_RDWR | O_CLOEXEC)) < 0) {
+             SLOGE("Unable to open %s (%s)", filename, strerror(errno));
+diff --git a/Utils.cpp b/Utils.cpp
+index 6ffdd7f..b3f8b92 100644
+--- a/Utils.cpp
++++ b/Utils.cpp
+@@ -68,13 +68,6 @@ status_t CreateDeviceNode(const std::string& path, dev_t dev) {
+     const char* cpath = path.c_str();
+     status_t res = 0;
+ 
+-    char* secontext = nullptr;
+-    if (sehandle) {
+-        if (!selabel_lookup(sehandle, &secontext, cpath, S_IFBLK)) {
+-            setfscreatecon(secontext);
+-        }
+-    }
+-
+     mode_t mode = 0660 | S_IFBLK;
+     if (mknod(cpath, mode, dev) < 0) {
+         if (errno != EEXIST) {
+@@ -84,11 +77,6 @@ status_t CreateDeviceNode(const std::string& path, dev_t dev) {
+         }
+     }
+ 
+-    if (secontext) {
+-        setfscreatecon(nullptr);
+-        freecon(secontext);
+-    }
+-
+     return res;
+ }
+ 
+@@ -104,20 +92,8 @@ status_t DestroyDeviceNode(const std::string& path) {
+ status_t PrepareDir(const std::string& path, mode_t mode, uid_t uid, gid_t gid) {
+     const char* cpath = path.c_str();
+ 
+-    char* secontext = nullptr;
+-    if (sehandle) {
+-        if (!selabel_lookup(sehandle, &secontext, cpath, S_IFDIR)) {
+-            setfscreatecon(secontext);
+-        }
+-    }
+-
+     int res = fs_prepare_dir(cpath, mode, uid, gid);
+ 
+-    if (secontext) {
+-        setfscreatecon(nullptr);
+-        freecon(secontext);
+-    }
+-
+     if (res == 0) {
+         return OK;
+     } else {
+@@ -282,15 +258,7 @@ status_t ForkExecvp(const std::vector<std::string>& args, security_context_t con
+         }
+     }
+ 
+-    if (setexeccon(context)) {
+-        LOG(ERROR) << "Failed to setexeccon";
+-        abort();
+-    }
+     status_t res = android_fork_execvp(argc, argv, NULL, false, true);
+-    if (setexeccon(nullptr)) {
+-        LOG(ERROR) << "Failed to setexeccon";
+-        abort();
+-    }
+ 
+     free(argv);
+     return res;
+@@ -314,15 +282,7 @@ status_t ForkExecvp(const std::vector<std::string>& args,
+     }
+     output.clear();
+ 
+-    if (setexeccon(context)) {
+-        LOG(ERROR) << "Failed to setexeccon";
+-        abort();
+-    }
+     FILE* fp = popen(cmd.c_str(), "r");
+-    if (setexeccon(nullptr)) {
+-        LOG(ERROR) << "Failed to setexeccon";
+-        abort();
+-    }
+ 
+     if (!fp) {
+         PLOG(ERROR) << "Failed to popen " << cmd;
+diff --git a/main.cpp b/main.cpp
+index 4301b2e..214abab 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -73,11 +73,6 @@ extern "C" int vold_main(int argc, char** argv) {
+ 
+     parse_args(argc, argv);
+ 
+-    sehandle = selinux_android_file_context_handle();
+-    if (sehandle) {
+-        selinux_android_set_sehandle(sehandle);
+-    }
+-
+     // Quickly throw a CLOEXEC on the socket we just inherited from init
+     fcntl(android_get_control_socket("vold"), F_SETFD, FD_CLOEXEC);
+     fcntl(android_get_control_socket("cryptd"), F_SETFD, FD_CLOEXEC);

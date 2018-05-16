@@ -1,0 +1,215 @@
+From d3f5b5bfcb9544d320b7be9f7f3ef2c3b816997e Mon Sep 17 00:00:00 2001
+From: LineageOS-MTK <luzejij@binka.me>
+Date: Tue, 23 May 2017 13:45:12 +0300
+Subject: [PATCH] Correct data transfer after device reboot
+
+---
+ .../internal/telephony/dataconnection/DataConnection.java   | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/dataconnection/DataConnection.java b/src/java/com/android/internal/telephony/dataconnection/DataConnection.java
+index edc58afc2..093389fbf 100644
+--- a/src/java/com/android/internal/telephony/dataconnection/DataConnection.java
++++ b/src/java/com/android/internal/telephony/dataconnection/DataConnection.java
+@@ -1503,13 +1503,12 @@ public boolean processMessage(Message msg) {
+                                     + " rat=" + rat + " ignoring");
+                         }
+                     } else {
+-                        if (drs == ServiceState.STATE_IN_SERVICE) {
+-                            // have to retry connecting since no attach event will come
+-                            if (mConnectionParams.mRetryWhenSSChange) {
+-                                retVal = NOT_HANDLED;
+-                                break;
+-                            }
+-                        } else {
++                        // have to retry connecting since no attach event will come
++                        if (mConnectionParams.mRetryWhenSSChange) {
++                            retVal = NOT_HANDLED;
++                            break;
++                        }
++                        if (drs != ServiceState.STATE_IN_SERVICE) {
+                             // We've lost the connection and we're retrying but DRS or RAT changed
+                             // so we may never succeed, might as well give up.
+                             mInactiveState.setEnterNotificationParams(DcFailCause.LOST_CONNECTION);
+
+From 13a46c9ae6febee32134edb64e0a89f2f9997436 Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Sun, 31 Jul 2016 20:20:20 +0200
+Subject: [PATCH] Use display name instead of numeric carrier Thanks to
+ @DerTeufel
+
+---
+ .../android/internal/telephony/SubscriptionController.java   | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/src/java/com/android/internal/telephony/SubscriptionController.java b/src/java/com/android/internal/telephony/SubscriptionController.java
+index 2979a76..87e43a4 100644
+--- a/src/java/com/android/internal/telephony/SubscriptionController.java
++++ b/src/java/com/android/internal/telephony/SubscriptionController.java
+@@ -265,6 +265,13 @@ public void notifySubscriptionInfoChanged() {
+          broadcastSimInfoContentChanged();
+      }
+ 
++     private boolean isNumeric(String str) {
++         for (char c : str.toCharArray()) {
++             if (!Character.isDigit(c)) return false;
++         }
++         return true;
++     }
++
+     /**
+      * New SubInfoRecord instance and fill in detail info
+      * @param cursor
+@@ -309,6 +316,11 @@ private SubscriptionInfo getSubInfoRecord(Cursor cursor) {
+                 + " mcc:" + mcc + " mnc:" + mnc + " countIso:" + countryIso + " userNwMode:" + userNwMode);
+         }
+ 
++        if (isNumeric(carrierName)) {
++            carrierName = displayName;
++            logd("[getSubInfoRecord] carrierName changed to: " + displayName);
++        }
++
+         // If line1number has been set to a different number, use it instead.
+         String line1Number = mTelephonyManager.getLine1NumberForSubscriber(id);
+         if (!TextUtils.isEmpty(line1Number) && !line1Number.equals(number)) {
+
+
+From 563afbc51baa47e2bd5aece37641f611f477676b Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Sun, 20 Dec 2015 14:54:55 +0600
+Subject: [PATCH] mtk: inputless ussd support
+
+Generic MediaTek chips handle USSD weirdly.
+---
+ src/java/com/android/internal/telephony/gsm/GSMPhone.java | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/java/com/android/internal/telephony/gsm/GSMPhone.java b/src/java/com/android/internal/telephony/gsm/GSMPhone.java
+index 82ae9f4..0ba62bb 100644
+--- a/src/java/com/android/internal/telephony/gsm/GSMPhone.java
++++ b/src/java/com/android/internal/telephony/gsm/GSMPhone.java
+@@ -1475,7 +1475,12 @@ private void updateCallForwardStatus() {
+             // Complete pending USSD
+ 
+             if (isUssdRelease) {
+-                found.onUssdRelease();
++                // MTK weirdness
++                if(ussdMessage != null) {
++                    found.onUssdFinished(ussdMessage, isUssdRequest);
++                } else {
++                    found.onUssdRelease();
++                }
+             } else if (isUssdError) {
+                 found.onUssdFinishedError();
+             } else {
+
+From cec4ac632e6fee4466337a638b2cc56679524478 Mon Sep 17 00:00:00 2001
+From: fire855 <thefire855@gmail.com>
+Date: Thu, 14 Apr 2016 14:10:53 +0200
+Subject: [PATCH] Implement fakeiccid
+
+Change-Id: I63789736383802893f49c1ebe3dcf0217cd582f3
+---
+ .../com/android/internal/telephony/SubscriptionInfoUpdater.java    | 2 +-
+ src/java/com/android/internal/telephony/uicc/IccConstants.java     | 3 +++
+ src/java/com/android/internal/telephony/uicc/RuimRecords.java      | 7 ++++---
+ src/java/com/android/internal/telephony/uicc/SIMRecords.java       | 7 ++++---
+ 4 files changed, 12 insertions(+), 7 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java b/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
+index 01ee3a7..fc22d6a 100644
+--- a/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
++++ b/src/java/com/android/internal/telephony/SubscriptionInfoUpdater.java
+@@ -290,7 +290,7 @@ public void handleMessage(Message msg) {
+                         mIccId[slotId] = ICCID_STRING_FOR_NO_SIM;
+                     }
+                 } else {
+-                    mIccId[slotId] = ICCID_STRING_FOR_NO_SIM;
++                    mIccId[slotId] = IccConstants.FAKE_ICCID;
+                     logd("Query IccId fail: " + ar.exception);
+                 }
+                 logd("sIccId[" + slotId + "] = " + mIccId[slotId]);
+diff --git a/src/java/com/android/internal/telephony/uicc/IccConstants.java b/src/java/com/android/internal/telephony/uicc/IccConstants.java
+index 90e6b46..5944d3b 100644
+--- a/src/java/com/android/internal/telephony/uicc/IccConstants.java
++++ b/src/java/com/android/internal/telephony/uicc/IccConstants.java
+@@ -102,4 +102,7 @@
+ 
+     //UICC access
+     static final String DF_ADF = "7FFF";
++
++    // Fake ICCID
++    static final String FAKE_ICCID = "00000000000001";
+ }
+diff --git a/src/java/com/android/internal/telephony/uicc/RuimRecords.java b/src/java/com/android/internal/telephony/uicc/RuimRecords.java
+index d348c81..8e5f4ab 100644
+--- a/src/java/com/android/internal/telephony/uicc/RuimRecords.java
++++ b/src/java/com/android/internal/telephony/uicc/RuimRecords.java
+@@ -690,10 +690,11 @@ public void handleMessage(Message msg) {
+                 data = (byte[])ar.result;
+ 
+                 if (ar.exception != null) {
+-                    break;
++                    mIccId = FAKE_ICCID;
++                }
++                else {
++                    mIccId = IccUtils.bcdToString(data, 0, data.length);
+                 }
+-
+-                mIccId = IccUtils.bcdToString(data, 0, data.length);
+ 
+                 log("iccid: " + mIccId);
+ 
+diff --git a/src/java/com/android/internal/telephony/uicc/SIMRecords.java b/src/java/com/android/internal/telephony/uicc/SIMRecords.java
+index 1ac262b..e8583a3 100644
+--- a/src/java/com/android/internal/telephony/uicc/SIMRecords.java
++++ b/src/java/com/android/internal/telephony/uicc/SIMRecords.java
+@@ -874,10 +874,11 @@ public void handleMessage(Message msg) {
+                 data = (byte[])ar.result;
+ 
+                 if (ar.exception != null) {
+-                    break;
++                    mIccId = FAKE_ICCID;
++                }
++                else {
++                    mIccId = IccUtils.bcdToString(data, 0, data.length);
+                 }
+-
+-                mIccId = IccUtils.bcdToString(data, 0, data.length);
+ 
+                 log("iccid: " + mIccId);
+ 
+From 880b07f5abc0957d8de9839416ce99375e9b1187 Mon Sep 17 00:00:00 2001
+From: LineageOS-MTK <luzejij@binka.me>
+Date: Mon, 22 May 2017 23:10:22 +0300
+Subject: [PATCH] Fix 2g/3g switch
+
+---
+ src/java/com/android/internal/telephony/PhoneBase.java | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/PhoneBase.java b/src/java/com/android/internal/telephony/PhoneBase.java
+index dc790d798..07b36c362 100644
+--- a/src/java/com/android/internal/telephony/PhoneBase.java
++++ b/src/java/com/android/internal/telephony/PhoneBase.java
+@@ -1750,7 +1750,7 @@ public void setPreferredNetworkType(int networkType, Message response) {
+         // Only set preferred network types to that which the modem supports
+         int modemRaf = getRadioAccessFamily();
+         int rafFromType = RadioAccessFamily.getRafFromNetworkType(networkType);
+-
++/*
+         if (modemRaf == RadioAccessFamily.RAF_UNKNOWN
+                 || rafFromType == RadioAccessFamily.RAF_UNKNOWN) {
+             Rlog.d(LOG_TAG, "setPreferredNetworkType: Abort, unknown RAF: "
+@@ -1764,8 +1764,8 @@ public void setPreferredNetworkType(int networkType, Message response) {
+             }
+             return;
+         }
+-
+-        int filteredRaf = (rafFromType & modemRaf);
++*/
++        int filteredRaf = (rafFromType);
+         int filteredType = RadioAccessFamily.getNetworkTypeFromRaf(filteredRaf);
+ 
+         // The getNetworkTypeFromRaf, has no way to differentiate between MODE_GSM_UMTS
+z
