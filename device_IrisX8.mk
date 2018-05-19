@@ -22,6 +22,10 @@ PRODUCT_TAGS += dalvik.gc.type-precise
 PRODUCT_PACKAGES += \
     Torch
 
+# Lights
+PRODUCT_PACKAGES += \
+    lights.mt6592
+
 # Symbols
 PRODUCT_PACKAGES += \
     libmtk_symbols \
@@ -29,10 +33,12 @@ PRODUCT_PACKAGES += \
 
 # Audio
 PRODUCT_PACKAGES += \
-    audio_policy.stub \
-    audio.usb.default \
-    audio.r_submix.default \
-    libaudio-resampler \
+        audio.a2dp.default \
+    	audio_policy.default \
+    	audio_policy.stub \
+    	audio.r_submix.default \
+    	audio.usb.default \
+    	libaudio-resampler \
     tinymix
 
 PRODUCT_PACKAGES += \
