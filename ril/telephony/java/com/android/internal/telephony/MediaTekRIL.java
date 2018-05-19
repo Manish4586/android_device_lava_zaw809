@@ -210,10 +210,6 @@ static final int RIL_REQUEST_SET_3G_CAPABILITY = 128;
                 if (needsOldRilFeature("qcomdsds")) {
                     String str = "SUB1";
                     byte[] data = str.getBytes();
-                    try {
-                        mSocket.getOutputStream().write(data);
-                        
-                    } 
                 }
 
                 int length = 0;
