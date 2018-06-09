@@ -26,9 +26,9 @@ repo init -u git://github.com/LineageOS/android.git -b cm-13.0
 
 repo sync
 
-git clone https://github.com/Manish4586/Iris-X8-L-Device_3.10.72.git -b los-13 device/Lava/IrisX8
+git clone https://github.com/Manish4586/android_device_lava_zaw809.git -b los-13 device/Lava/IrisX8
 
-git clone https://github.com/Manish4586/Iris-X8-L-Vendor_3.10.72.git -b los-13 vendor/Lava/IrisX8
+git clone https://github.com/Manish4586/android_vendor_lava_zaw809.git -b los-13 vendor/Lava/IrisX8
 
 source build/envsetup.sh
 
