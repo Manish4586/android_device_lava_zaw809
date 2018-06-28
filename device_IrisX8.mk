@@ -33,12 +33,12 @@ PRODUCT_PACKAGES += \
 
 # Audio
 PRODUCT_PACKAGES += \
-        audio.a2dp.default \
-    	audio_policy.default \
-    	audio_policy.stub \
-    	audio.r_submix.default \
-    	audio.usb.default \
-    	libaudio-resampler \
+    audio.primary.mt6592 \
+    audio_policy.default \
+    audio_policy.stub \
+    audio.usb.default \
+    audio.r_submix.default \
+    libaudio-resampler \
     tinymix
 
 PRODUCT_PACKAGES += \
