@@ -1,4 +1,3 @@
-#include <MtpTypes.h>
 #include <system/audio.h>
 #include <StrongPointer.h>
 #include <media/IAudioFlinger.h>
