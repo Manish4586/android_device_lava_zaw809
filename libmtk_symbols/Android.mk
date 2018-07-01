@@ -22,6 +22,8 @@ LOCAL_SRC_FILES := \
     mtk_ril.cpp \
     mtk_cam.cpp \
     libshim_bionic.cpp \
+    gui.cpp \
+    xlog_hack.cpp \
     icu55.c
 
 LOCAL_SHARED_LIBRARIES := libbinder liblog libicuuc libui libcrypto libc
