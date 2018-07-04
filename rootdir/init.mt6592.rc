@@ -521,11 +521,11 @@ on post-fs-data
     chown system media /dev/mtkg2d
 
     chmod 0660 /sys/bus/platform/drivers/mem_bw_ctrl/concurrency_scenario
-    chown media media /sys/bus/platform/drivers/mem_bw_ctrl/concurrency_scenario
+    chown system camera /sys/bus/platform/drivers/mem_bw_ctrl/concurrency_scenario
 
     # SMI
     chmod 0660 /dev/MTK_SMI
-    chown media media /dev/MTK_SMI
+    chown system camera /dev/MTK_SMI
     
     # BT SCO CVSD, for MT6592 CVSD codec on AP
     chmod 0660 /dev/ebc
