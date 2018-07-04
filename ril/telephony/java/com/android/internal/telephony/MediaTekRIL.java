@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The CyanogenMod Project
+ * Copyright (C) 2010 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/* This Package Contains Some Initial Fixes For MediaTekRiL Fixed Data Connection And Second Sim Slot
+ * From: Manish4586 <manish.n.manish45@gmail.com>
+ */
 package com.android.internal.telephony;
 
 import static com.android.internal.telephony.RILConstants.*;
