@@ -1,21 +1,25 @@
-/* 
- * Copyright (C) 2010 The Android Open Source Project
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
- * You may obtain a copy of the License at 
+/*
+ * Copyright (C) 2015 The Android Open Source Project
  *
- * http://www.apache.org/licenses/LICENSE-2.0 * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
- * limitations under the License. 
+ * From: Manish4586 <manish.n.manish45@gmail.com>
+ * 
+ * Generic MediaTek Ril Fixes 
+ * 
+ * https://github.com/Manish4586
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-/* 
-This Package Contains Some Fixes For  MediaTek
- * From: Manish4586 <manish.n.manish45@gmail.com> 
-*/
+
 package com.android.internal.telephony;
 
 import static com.android.internal.telephony.RILConstants.*;
@@ -36,7 +40,7 @@ import java.io.InputStream;
 public class MediaTekRIL extends RIL implements CommandsInterface {
 
 static final int RIL_REQUEST_SET_3G_CAPABILITY = 128;
-static final int RIL_REQUEST_ALLOW_DATA = 125;
+
     public MediaTekRIL(Context context, int networkMode, int cdmaSubscription) {
 	    super(context, networkMode, cdmaSubscription, null);
     }
@@ -427,8 +431,6 @@ static final int RIL_REQUEST_ALLOW_DATA = 125;
             case RIL_REQUEST_IMS_REGISTRATION_STATE: ret = responseInts(p); break;
             case RIL_REQUEST_IMS_SEND_SMS: ret =  responseSMS(p); break;
             case RIL_REQUEST_SET_UICC_SUBSCRIPTION: ret = responseVoid(p); break;
-            case RIL_REQUEST_SET_DATA_SUBSCRIPTION: ret = responseVoid(p); break;
-            case RIL_REQUEST_GET_DATA_CALL_PROFILE: ret =  responseGetDataCallProfile(p); break
             
             default:
                 throw new RuntimeException("Unrecognized solicited response: " + rr.mRequest);
@@ -613,7 +615,6 @@ static final int RIL_REQUEST_ALLOW_DATA = 125;
             case RIL_REQUEST_REPORT_SMS_MEMORY_STATUS: return "RIL_REQUEST_REPORT_SMS_MEMORY_STATUS";
             case RIL_REQUEST_REPORT_STK_SERVICE_IS_RUNNING: return "RIL_REQUEST_REPORT_STK_SERVICE_IS_RUNNING";
             case RIL_REQUEST_CDMA_GET_SUBSCRIPTION_SOURCE: return "RIL_REQUEST_CDMA_GET_SUBSCRIPTION_SOURCE";                    
-            case RIL_REQUEST_GET_DATA_CALL_PROFILE: return "RIL_REQUEST_GET_DATA_CALL_PROFILE";
             case RIL_REQUEST_ISIM_AUTHENTICATION: return "RIL_REQUEST_ISIM_AUTHENTICATION";
             case RIL_REQUEST_ACKNOWLEDGE_INCOMING_GSM_SMS_WITH_PDU: return "RIL_REQUEST_ACKNOWLEDGE_INCOMING_GSM_SMS_WITH_PDU";
             case RIL_REQUEST_STK_SEND_ENVELOPE_WITH_STATUS: return "RIL_REQUEST_STK_SEND_ENVELOPE_WITH_STATUS";
@@ -624,7 +625,6 @@ static final int RIL_REQUEST_ALLOW_DATA = 125;
             case RIL_REQUEST_IMS_REGISTRATION_STATE: return "RIL_REQUEST_IMS_REGISTRATION_STATE";
             case RIL_REQUEST_IMS_SEND_SMS: return "RIL_REQUEST_IMS_SEND_SMS";
             case RIL_REQUEST_SET_UICC_SUBSCRIPTION: return "RIL_REQUEST_SET_UICC_SUBSCRIPTION";            
-            case RIL_REQUEST_SET_DATA_SUBSCRIPTION: return "RIL_REQUEST_SET_DATA_SUBSCRIPTION";
             case RIL_REQUEST_SET_3G_CAPABILITY: return "RIL_REQUEST_SET_3G_CAPABILITY";
             default: return "<unknown request>";
         }
