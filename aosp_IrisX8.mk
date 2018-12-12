@@ -2,7 +2,7 @@
 PRODUCT_RELEASE_NAME := irisX8
 
 # Inherit some common CM stuff.
-$(call inherit-product, vendor/aosp/common.mk)
+$(call inherit-product, vendor/aosp/config/common_full_phone.mk)
 
 # Inherit device configuration
 $(call inherit-product, device/Lava/IrisX8/device_IrisX8.mk)
